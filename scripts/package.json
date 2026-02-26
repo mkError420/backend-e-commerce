@@ -1,0 +1,12 @@
+{
+  "name": "setup-scripts",
+  "version": "1.0.0",
+  "description": "Setup scripts for MK Shop",
+  "scripts": {
+    "setup-admin": "node setup-demo-admin.js"
+  },
+  "dependencies": {
+    "mongoose": "^8.0.3",
+    "bcryptjs": "^2.4.3"
+  }
+}
