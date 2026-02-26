@@ -14,7 +14,8 @@ import {
   Menu, 
   X,
   LogOut,
-  Settings
+  Settings,
+  Store
 } from 'lucide-react'
 
 const navigationItems = [
@@ -28,6 +29,12 @@ const navigationItems = [
     name: 'Products',
     href: '/admin/products',
     icon: Package,
+    current: false
+  },
+  {
+    name: 'Shop',
+    href: '/shop',
+    icon: Store,
     current: false
   },
   {

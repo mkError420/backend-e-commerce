@@ -53,6 +53,13 @@ export default function AdminPage() {
       color: 'bg-shop_dark_green'
     },
     {
+      title: 'Manage Products',
+      description: 'View and edit all products',
+      href: '/shop',
+      icon: Package,
+      color: 'bg-indigo-600'
+    },
+    {
       title: 'View Orders',
       description: 'Manage customer orders',
       href: '/admin/orders',

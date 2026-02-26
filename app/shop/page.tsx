@@ -336,7 +336,7 @@ const ShopPage = () => {
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState<string | null>(null)
 
-  const handleRefreshProducts = () => {
+  const handleRefreshProducts = async () => {
     setProductsLoading(true)
     setProductsError(null)
     
@@ -347,30 +347,31 @@ const ShopPage = () => {
       if (storedProducts.length > 0) {
         console.log('Refreshed admin-created products:', storedProducts.length)
         setProducts(storedProducts)
-      } else {
-        // Try API again
-        fetcher('/api/products')
-          .then(data => {
-            if (data.length === 0) {
-              setProducts(sampleProducts)
-            } else {
-              setProducts(data)
-            }
-            setProductsLoading(false)
-          })
-          .catch(err => {
-            console.error('Refresh failed:', err)
-            setProducts(sampleProducts)
-            setProductsError(err.message)
-            setProductsLoading(false)
-          })
+        setProductsLoading(false)
         return
+      }
+      
+      // Try API again
+      console.log('Refreshing products from API...')
+      const response = await fetch('http://localhost:5000/api/products')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('API refresh response:', data)
+      
+      if (data.length === 0) {
+        setProducts(sampleProducts)
+      } else {
+        setProducts(data)
       }
       setProductsLoading(false)
     } catch (err) {
-      console.error('Error refreshing products:', err)
-      setProductsError('Failed to refresh products')
+      console.error('Refresh failed:', err)
       setProducts(sampleProducts)
+      setProductsError(err instanceof Error ? err.message : 'Failed to refresh products')
       setProductsLoading(false)
     }
   }
@@ -379,45 +380,49 @@ const ShopPage = () => {
     setProductsLoading(true)
     setProductsError(null)
     
-    try {
-      // First try to load from localStorage (admin-created products)
-      const storedProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-      
-      if (storedProducts.length > 0) {
-        console.log('Loading admin-created products for shop:', storedProducts.length)
-        setProducts(storedProducts)
-        setProductsLoading(false)
-        return
-      }
+    const loadProducts = async () => {
+      try {
+        // First try to load from localStorage (admin-created products)
+        const storedProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
+        
+        if (storedProducts.length > 0) {
+          console.log('Loading admin-created products for shop:', storedProducts.length)
+          setProducts(storedProducts)
+          setProductsLoading(false)
+          return
+        }
 
-      // Fallback to API if no admin products
-      fetcher('/api/products')
-        .then(data => {
-          if (data.length === 0) {
-            // Use sample data if API returns empty
-            console.log('Using sample products for shop')
-            setProducts(sampleProducts)
-          } else {
-            console.log('Using API products for shop:', data.length)
-            setProducts(data)
-          }
-          setProductsLoading(false)
-        })
-        .catch(err => {
-          console.error('Shop page failed to load products from API:', err)
-          // Use sample data as fallback
-          console.log('Using sample products as fallback for shop')
+        // Fallback to API if no admin products
+        console.log('Fetching products from API...')
+        const response = await fetch('http://localhost:5000/api/products')
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        console.log('API response:', data)
+        
+        if (data.length === 0) {
+          // Use sample data if API returns empty
+          console.log('Using sample products for shop')
           setProducts(sampleProducts)
-          setProductsError(err.message)
-          setProductsLoading(false)
-        })
-    } catch (err) {
-      console.error('Error loading shop products:', err)
-      setProductsError('Failed to load products')
-      // Use sample data as ultimate fallback
-      setProducts(sampleProducts)
-      setProductsLoading(false)
+        } else {
+          console.log('Using API products for shop:', data.length)
+          setProducts(data)
+        }
+        setProductsLoading(false)
+      } catch (err) {
+        console.error('Shop page failed to load products from API:', err)
+        // Use sample data as fallback
+        console.log('Using sample products as fallback for shop')
+        setProducts(sampleProducts)
+        setProductsError(err instanceof Error ? err.message : 'Failed to load products')
+        setProductsLoading(false)
+      }
     }
+
+    loadProducts()
   }, [])
 
   // Filter states
