@@ -3,16 +3,24 @@
 import { Search, X } from 'lucide-react'
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { productsData } from '@/constants/data'
+import { fetcher } from '@/lib/api'
 import Link from 'next/link'
 import Image from 'next/image'
 
 const SearchBar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<typeof productsData>([])
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [allProducts, setAllProducts] = useState<any[]>([])
   const router = useRouter()
   const searchRef = useRef<HTMLDivElement>(null)
+
+  // fetch products once
+  useEffect(() => {
+    fetcher('/api/products')
+      .then(data => setAllProducts(data))
+      .catch(err => console.error('searchbar failed to fetch products', err))
+  }, [])
 
   // Handle search
   useEffect(() => {
@@ -21,7 +29,7 @@ const SearchBar = () => {
       console.log('Searching for:', query) // Debug log
       
       // Search across ALL products and ALL categories
-      const results = productsData.filter(product => {
+      const results = allProducts.filter(product => {
         const nameMatch = product.name.toLowerCase().includes(query)
         const categoryMatch = product.category.toLowerCase().includes(query)
         const descriptionMatch = product.description?.toLowerCase().includes(query)
@@ -42,7 +50,7 @@ const SearchBar = () => {
     } else {
       setSearchResults([])
     }
-  }, [searchQuery])
+  }, [searchQuery, allProducts])
 
   // Close search when clicking outside
   useEffect(() => {
@@ -69,12 +77,11 @@ const SearchBar = () => {
     handleSearch(searchQuery)
   }
 
-  const handleProductClick = (productId: number) => {
+  const handleProductClick = (productId: string | number) => {
     console.log('Product clicked:', productId) // Debug log
     setIsOpen(false)
     setSearchQuery('')
-    // Navigate to product detail page or search results
-    const product = productsData.find(p => p.id === productId)
+    const product = allProducts.find(p => p._id === productId || p.id === productId)
     if (product) {
       console.log('Found product:', product.name) // Debug log
       handleSearch(product.name)

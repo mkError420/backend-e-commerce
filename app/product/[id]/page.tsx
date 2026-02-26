@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useSlideCart } from '@/contexts/SlideCartContext'
-import { productsData } from '@/constants/data'
+import { fetcher } from '@/lib/api'
 
 const ProductDetailPage = () => {
   const params = useParams()
@@ -79,13 +79,32 @@ const ProductDetailPage = () => {
   const [shareModal, setShareModal] = useState<{ open: boolean; reviewId: number | null }>({ open: false, reviewId: null })
   const [reportReason, setReportReason] = useState('')
 
-  // Find product by ID
-  const product = productsData.find(p => p.id === parseInt(params.id as string))
+  // Load product from backend
+  const [product, setProduct] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    const id = params.id
+    if (!id) return
+    setLoading(true)
+    fetcher(`/api/products/${id}`)
+      .then(data => {
+        setProduct(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('could not load product', err)
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [params.id])
 
   // Load reviews from localStorage on component mount
   React.useEffect(() => {
     if (product) {
-      const storedReviews = localStorage.getItem(`product_reviews_${product.id}`)
+      const key = `product_reviews_${product._id || product.id}`
+      const storedReviews = localStorage.getItem(key)
       if (storedReviews) {
         try {
           const parsedReviews = JSON.parse(storedReviews)
@@ -95,25 +114,35 @@ const ProductDetailPage = () => {
         }
       }
     }
-  }, [product?.id])
+  }, [product?._id, product?.id])
 
   // Save reviews to localStorage whenever they change
   React.useEffect(() => {
     if (product && reviews.length > 0) {
-      localStorage.setItem(`product_reviews_${product.id}`, JSON.stringify(reviews))
+      const key = `product_reviews_${product._id || product.id}`
+      localStorage.setItem(key, JSON.stringify(reviews))
     }
-  }, [reviews, product?.id])
+  }, [reviews, product?._id, product?.id])
 
   // Check if product is already in wishlist on component mount
   React.useEffect(() => {
     if (product) {
       const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items') || '[]')
-      const isInWishlist = currentWishlist.some((item: any) => item.id === product.id)
+      const idToCheck = product._id || product.id
+      const isInWishlist = currentWishlist.some((item: any) => item._id === idToCheck || item.id === idToCheck)
       setIsInWishlist(isInWishlist)
     }
-  }, [product?.id])
+  }, [product?._id, product?.id])
 
-  if (!product) {
+  if (loading) {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <p>Loading product...</p>
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
         <div className='text-center'>
@@ -136,6 +165,7 @@ const ProductDetailPage = () => {
   const handleAddToCart = () => {
     const productToAdd = {
       ...product,
+      _id: product._id || product.id,
       quantity: quantity
     }
     addToCart(productToAdd, 'product')
@@ -160,6 +190,7 @@ const ProductDetailPage = () => {
       // Add to wishlist
       const wishlistItem = {
         ...product,
+        _id: product._id || product.id,
         addedDate: new Date().toISOString()
       }
       const updatedWishlist = [...currentWishlist, wishlistItem]
@@ -167,7 +198,8 @@ const ProductDetailPage = () => {
       console.log('Added to wishlist:', product.name)
     } else {
       // Remove from wishlist
-      const updatedWishlist = currentWishlist.filter((item: any) => item.id !== product.id)
+      const idToRemove = product._id || product.id
+      const updatedWishlist = currentWishlist.filter((item: any) => item._id !== idToRemove && item.id !== idToRemove)
       localStorage.setItem('wishlist_items', JSON.stringify(updatedWishlist))
       console.log('Removed from wishlist:', product.name)
     }

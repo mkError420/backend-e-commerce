@@ -53,24 +53,36 @@ const CheckoutPage = () => {
     setStep(2)
   }
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+  const { checkout } = useCart()
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStep(3)
-    // Simulate order processing
-    setTimeout(() => {
+    try {
+      const shippingAddress = {
+        address: shippingInfo.address,
+        city: shippingInfo.district,
+        postalCode: shippingInfo.zipCode,
+        country: shippingInfo.country,
+      }
+      const order = await checkout(shippingAddress, paymentInfo.paymentMethod)
       setOrderPlaced(true)
-      clearCart()
-      
-      // Redirect to confirmation page with order details
-      const orderParams = new URLSearchParams({
-        order: `ORD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        amount: total.toString(),
-        items: getCartItemsCount().toString(),
-        method: paymentInfo.paymentMethod
+      // navigate to confirmation page with real order id & amount
+      const params = new URLSearchParams({
+        order: order._id,
+        amount: order.totalPrice.toString(),
+        items: order.orderItems.length.toString(),
+        method: order.paymentMethod,
+        email: shippingInfo.email,
+        address: shippingInfo.address,
+        district: shippingInfo.district,
       })
-      
-      router.push(`/confirmation?${orderParams.toString()}`)
-    }, 2000)
+      router.push(`/confirmation?${params.toString()}`)
+    } catch (err) {
+      console.error('checkout failed', err)
+      // optionally show error to user
+    }
+    clearCart()
   }
 
   if (cartItems.length === 0) {

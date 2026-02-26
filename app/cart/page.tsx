@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { productsData } from '@/constants/data'
+import { fetcher } from '@/lib/api'
 import { 
   ShoppingCart, 
   Plus, 
@@ -58,8 +59,24 @@ const CartPage = () => {
     }
   }
 
-  // Get recommended products
-  const recommendedProducts = productsData.slice(0, 4)
+  // Get recommended products from backend
+  const [recommendedProducts, setRecommendedProducts] = React.useState<any[]>([])
+  const [recLoading, setRecLoading] = React.useState(true)
+  const [recError, setRecError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    setRecLoading(true)
+    fetcher('/api/products')
+      .then(data => {
+        setRecommendedProducts(data.slice(0, 4))
+        setRecLoading(false)
+      })
+      .catch(err => {
+        console.error('failed to load recommended products', err)
+        setRecError(err.message)
+        setRecLoading(false)
+      })
+  }, [])
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-shop_light_pink relative'>

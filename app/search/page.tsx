@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Container from '@/components/Container'
-import { productsData } from '@/constants/data'
 import ProductCard from '@/components/ProductCard'
+import { fetcher } from '@/lib/api'
 import { Search, Filter, X, SlidersHorizontal } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,12 +17,15 @@ const SearchPageContent = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 })
   const [sortBy, setSortBy] = useState('relevance')
   const [showFilters, setShowFilters] = useState(false)
+  const [allProducts, setAllProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Get unique categories
   const categories = useMemo(() => {
-    const cats = [...new Set(productsData.map(product => product.category))]
+    const cats = [...new Set(allProducts.map(product => product.category))]
     return cats
-  }, [])
+  }, [allProducts])
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -31,7 +34,7 @@ const SearchPageContent = () => {
     // If no search query, show all products
     if (!query.trim()) {
       console.log('No search query, showing all products') // Debug log
-      return productsData
+      return allProducts
     }
 
     // If there's a search query, search across ALL categories
@@ -85,6 +88,20 @@ const SearchPageContent = () => {
   useEffect(() => {
     setSearchQuery(query)
   }, [query])
+
+  useEffect(() => {
+    setLoading(true)
+    fetcher('/api/products')
+      .then(data => {
+        setAllProducts(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('search page failed to load products', err)
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,7 +162,7 @@ const SearchPageContent = () => {
           {/* Results Count and Filters Toggle */}
           <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
             <p className='text-gray-600'>
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+              {loading ? 'Loading...' : `${filteredProducts.length} ${filteredProducts.length === 1 ? 'product' : 'products'} found`}
             </p>
             
             <div className='flex items-center gap-4'>
@@ -261,7 +278,7 @@ const SearchPageContent = () => {
             {filteredProducts.length > 0 ? (
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} viewMode="grid" />
+                  <ProductCard key={product._id || product.id} product={product} viewMode="grid" />
                 ))}
               </div>
             ) : (

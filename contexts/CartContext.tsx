@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { productsData } from '@/constants/data'
+import { fetcher } from '@/lib/api'
 
 interface CartItem {
   product?: typeof productsData[0]
@@ -56,22 +57,26 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     localStorage.setItem('cart', JSON.stringify(cartItems))
   }, [cartItems])
 
+  // helper to pull id or _id
+  const getIdentifier = (obj: any) => obj?._id || obj?.id
+
   const addToCart = (item: typeof productsData[0] | any, itemType: 'product' | 'deal') => {
-    console.log(`addToCart called with ${itemType}:`, itemType === 'product' ? item.name : item.title) // Debug log
+    console.log(`addToCart called with ${itemType}:`, itemType === 'product' ? item.name : item.title)
     setCartItems(prev => {
-      const itemId = itemType === 'product' ? item.id : item.id
+      const itemId = getIdentifier(item)
       const existingItem = prev.find(cartItem => {
         if (cartItem.itemType === itemType) {
-          return itemType === 'product' ? cartItem.product?.id === itemId : cartItem.deal?.id === itemId
+          const candidate = cartItem.itemType === 'product' ? cartItem.product : cartItem.deal
+          return getIdentifier(candidate) === itemId
         }
         return false
       })
-      
+
       if (existingItem) {
         return prev.map(cartItem => {
           if (cartItem.itemType === itemType) {
-            const currentItemId = itemType === 'product' ? cartItem.product?.id : cartItem.deal?.id
-            if (currentItemId === itemId) {
+            const candidate = cartItem.itemType === 'product' ? cartItem.product : cartItem.deal
+            if (getIdentifier(candidate) === itemId) {
               return { ...cartItem, quantity: cartItem.quantity + 1 }
             }
           }
@@ -87,13 +92,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     })
   }
 
-  const removeFromCart = (itemId: number, itemType: 'product' | 'deal') => {
+  const removeFromCart = (itemId: string | number, itemType: 'product' | 'deal') => {
     console.log('removeFromCart called:', { itemId, itemType })
     setCartItems(prev => {
       const newItems = prev.filter(item => {
         if (item.itemType === itemType) {
-          const currentItemId = itemType === 'product' ? item.product?.id : item.deal?.id
-          return currentItemId !== itemId
+          const candidate = item.itemType === 'product' ? item.product : item.deal
+          return getIdentifier(candidate) !== itemId
         }
         return true
       })
@@ -107,7 +112,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     setCartItems(prev => 
       prev.map(item => {
         if (item.itemType === itemType) {
-          const currentItemId = itemType === 'product' ? item.product?.id : item.deal?.id
+          const currentItemId = itemType === 'product' ? (item.product?._id || item.product?.id) : item.deal?.id
           if (currentItemId === itemId) {
             return { ...item, quantity }
           }
@@ -119,6 +124,44 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([])
+  }
+
+  // create order using backend API
+  const checkout = async (shippingAddress: any, paymentMethod: string) => {
+    if (cartItems.length === 0) throw new Error('Cart is empty')
+    const orderItems = cartItems.map(item => {
+      const product = item.product || item.deal
+      return {
+        product: product._id || product.id,
+        qty: item.quantity,
+        price: item.product ? product.price : product.dealPrice,
+      }
+    })
+
+    const itemsPrice = cartItems.reduce((sum, item) => {
+      const price = item.product ? item.product.price : item.deal.dealPrice
+      return sum + price * item.quantity
+    }, 0)
+    const taxPrice = 0
+    const shippingPrice = itemsPrice < 10000 ? 120 : 0
+    const totalPrice = itemsPrice + taxPrice + shippingPrice
+
+    const res = await fetcher('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderItems,
+        shippingAddress,
+        paymentMethod,
+        itemsPrice,
+        taxPrice,
+        shippingPrice,
+        totalPrice,
+      }),
+    })
+
+    // clear cart after successful creation
+    clearCart()
+    return res
   }
 
   const getCartTotal = () => {
@@ -136,11 +179,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0)
   }
 
-  const isInCart = (itemId: number, itemType: 'product' | 'deal') => {
+  const isInCart = (itemId: string | number, itemType: 'product' | 'deal') => {
     return cartItems.some(item => {
       if (item.itemType === itemType) {
-        const currentItemId = itemType === 'product' ? item.product?.id : item.deal?.id
-        return currentItemId === itemId
+        const candidate = item.itemType === 'product' ? item.product : item.deal
+        return getIdentifier(candidate) === itemId
       }
       return false
     })

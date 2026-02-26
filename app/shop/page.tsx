@@ -7,6 +7,7 @@ import ShopHeader from '@/components/ShopHeader';
 import FilterSidebar from '@/components/FilterSidebar';
 import ProductCard from '@/components/ProductCard';
 import Pagination from '@/components/Pagination';
+import { fetcher } from '@/lib/api';
 
 // Categories and deal types for filters
 const categories = [
@@ -118,22 +119,8 @@ const dealTypes = [
   { name: 'Daily Deal', slug: 'daily', icon: '📅' }
 ]
 
-// Sample product data - in a real app, this would come from an API
-const sampleProducts = [
-  {
-    id: 1,
-    name: 'Wireless Bluetooth Headphones Premium',
-    price: 89.99,
-    originalPrice: 149.99,
-    image: '/api/placeholder/300/300',
-    rating: 4.5,
-    reviews: 128,
-    badge: 'Best Seller',
-    category: 'Electronics',
-    size: 'M',
-    description: 'Premium wireless headphones with noise cancellation and superior sound quality.'
-  },
-  {
+// products are fetched from backend
+const sampleProducts: any[] = []
     id: 2,
     name: 'Smart Watch Pro Series 5',
     price: 199.99,
@@ -330,7 +317,25 @@ const ShopPage = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(9)
   const [currentSlide, setCurrentSlide] = useState(0)
-  
+
+  const [products, setProducts] = useState<any[]>([])
+  const [productsLoading, setProductsLoading] = useState(true)
+  const [productsError, setProductsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setProductsLoading(true)
+    fetcher('/api/products')
+      .then(data => {
+        setProducts(data)
+        setProductsLoading(false)
+      })
+      .catch(err => {
+        console.error('shop page failed to load products', err)
+        setProductsError(err.message)
+        setProductsLoading(false)
+      })
+  }, [])
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string[]>(['all'])
   const [selectedRatings, setSelectedRatings] = useState<number[]>([])
@@ -361,7 +366,7 @@ const ShopPage = () => {
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = sampleProducts.filter(product => {
+    let filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase())
       

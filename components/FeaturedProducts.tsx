@@ -1,9 +1,27 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import ProductCard from './ProductCard'
-import { productsData } from '@/constants/data'
+import { fetcher } from '@/lib/api'
 
 const FeaturedProducts = () => {
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLoading(true)
+    fetcher('/api/products')
+      .then(data => {
+        setProducts(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to load products', err)
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [])
+
   return (
     <section className='py-8 sm:py-12 md:py-16 bg-shop_light_bg'>
       <div className='max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8'>
@@ -19,9 +37,12 @@ const FeaturedProducts = () => {
 
         {/* Products Grid */}
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8'>
-          {productsData.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} viewMode="grid" />
-          ))}
+          {loading && <p>Loading...</p>}
+          {error && <p className='text-red-500'>{error}</p>}
+          {!loading && !error &&
+            products.slice(0, 8).map((product) => (
+              <ProductCard key={product._id} product={product} viewMode="grid" />
+            ))}
         </div>
 
         {/* View All Button */}

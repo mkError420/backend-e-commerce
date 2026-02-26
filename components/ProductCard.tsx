@@ -8,11 +8,13 @@ import { useCart } from '@/contexts/CartContext'
 import { useSlideCart } from '@/contexts/SlideCartContext'
 
 interface Product {
-  id: number | string
+  id?: number | string
+  _id?: string
   name: string
   price: number
   originalPrice?: number
-  image: string
+  image?: string
+  images?: string[]
   rating?: number
   reviews?: number
   badge?: string
@@ -32,8 +34,9 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const [showQuickView, setShowQuickView] = useState(false)
   const discountPercentage = Math.round(((product.originalPrice || product.price) - product.price) / (product.originalPrice || product.price) * 100)
   
-  // Handle both number and string IDs
-  const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id
+  // Handle id field from backend or frontend data
+  const rawId = product._id || product.id
+  const productId = typeof rawId === 'string' ? rawId : rawId
   console.log('ProductCard rendering for product:', product.name, 'ID:', productId, 'Type:', typeof product.id) // Debug log
   
   const handleAddToCart = () => {
@@ -41,13 +44,14 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
     console.log('Product object:', product) // Debug log
     const productToAdd = {
       ...product,
-      id: productId,
+      _id: productId,
       originalPrice: product.originalPrice || product.price,
       rating: product.rating || 0,
       reviews: product.reviews || 0,
       badge: product.badge || '',
       category: product.category || '',
-      description: product.description || ''
+      description: product.description || '',
+      image: product.image || (product.images && product.images[0]) || ''
     }
     addToCart(productToAdd, 'product')
     openSlideCart()
@@ -175,7 +179,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
 
                 {/* Product Name */}
                 <h3 className='text-lg font-semibold text-gray-900 mb-2 hover:text-shop_dark_green transition-colors duration-300'>
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/product/${product._id || product.id}`}>
                     {product.name}
                   </Link>
                 </h3>
