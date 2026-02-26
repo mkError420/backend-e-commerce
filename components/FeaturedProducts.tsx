@@ -1,7 +1,10 @@
+"use client"
+
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import ProductCard from './ProductCard'
 import { fetcher } from '@/lib/api'
+import { productsData } from '@/constants/data'
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState<any[]>([])
@@ -12,12 +15,19 @@ const FeaturedProducts = () => {
     setLoading(true)
     fetcher('/api/products')
       .then(data => {
-        setProducts(data)
+        // If API returns empty data, use sample data
+        if (data && data.length === 0) {
+          setProducts(productsData)
+        } else {
+          setProducts(data)
+        }
         setLoading(false)
       })
       .catch(err => {
         console.error('Failed to load products', err)
-        setError(err.message)
+        // On error, use sample data as fallback
+        setProducts(productsData)
+        setError(null) // Clear error since we have fallback data
         setLoading(false)
       })
   }, [])
@@ -41,7 +51,7 @@ const FeaturedProducts = () => {
           {error && <p className='text-red-500'>{error}</p>}
           {!loading && !error &&
             products.slice(0, 8).map((product) => (
-              <ProductCard key={product._id} product={product} viewMode="grid" />
+              <ProductCard key={product._id || product.id} product={product} viewMode="grid" />
             ))}
         </div>
 

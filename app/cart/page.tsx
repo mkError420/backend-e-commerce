@@ -68,12 +68,19 @@ const CartPage = () => {
     setRecLoading(true)
     fetcher('/api/products')
       .then(data => {
-        setRecommendedProducts(data.slice(0, 4))
+        // If API returns empty data, use sample data
+        if (data && data.length === 0) {
+          setRecommendedProducts(productsData.slice(0, 4))
+        } else {
+          setRecommendedProducts(data.slice(0, 4))
+        }
         setRecLoading(false)
       })
       .catch(err => {
         console.error('failed to load recommended products', err)
-        setRecError(err.message)
+        // On error, use sample data as fallback
+        setRecommendedProducts(productsData.slice(0, 4))
+        setRecError(null) // Clear error since we have fallback data
         setRecLoading(false)
       })
   }, [])

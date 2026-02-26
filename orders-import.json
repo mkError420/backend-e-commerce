@@ -1,0 +1,112 @@
+[
+  {
+    "user": "John Doe",
+    "orderItems": [
+      {
+        "product": "Wireless Bluetooth Headphones",
+        "qty": 1,
+        "price": 89.99
+      }
+    ],
+    "shippingAddress": {
+      "address": "123 Main St",
+      "city": "New York",
+      "postalCode": "10001",
+      "country": "USA"
+    },
+    "paymentMethod": "Credit Card",
+    "itemsPrice": 89.99,
+    "taxPrice": 7.20,
+    "shippingPrice": 5.00,
+    "totalPrice": 102.19,
+    "isPaid": true,
+    "paidAt": "2024-01-15T10:30:00Z",
+    "isDelivered": true,
+    "deliveredAt": "2024-01-17T14:00:00Z"
+  },
+  {
+    "user": "Jane Smith",
+    "orderItems": [
+      {
+        "product": "Premium Leather Jacket",
+        "qty": 1,
+        "price": 149.99
+      },
+      {
+        "product": "Organic Skincare Set",
+        "qty": 2,
+        "price": 79.99
+      }
+    ],
+    "shippingAddress": {
+      "address": "456 Oak Ave",
+      "city": "Los Angeles",
+      "postalCode": "90001",
+      "country": "USA"
+    },
+    "paymentMethod": "PayPal",
+    "itemsPrice": 309.97,
+    "taxPrice": 24.80,
+    "shippingPrice": 10.00,
+    "totalPrice": 344.77,
+    "isPaid": true,
+    "paidAt": "2024-01-20T09:15:00Z",
+    "isDelivered": false,
+    "deliveredAt": null
+  },
+  {
+    "user": "Mike Johnson",
+    "orderItems": [
+      {
+        "product": "Gaming Mechanical Keyboard",
+        "qty": 1,
+        "price": 129.99
+      },
+      {
+        "product": "Wireless Mouse",
+        "qty": 1,
+        "price": 29.99
+      }
+    ],
+    "shippingAddress": {
+      "address": "789 Pine Rd",
+      "city": "Chicago",
+      "postalCode": "60007",
+      "country": "USA"
+    },
+    "paymentMethod": "Credit Card",
+    "itemsPrice": 159.98,
+    "taxPrice": 12.80,
+    "shippingPrice": 8.00,
+    "totalPrice": 180.78,
+    "isPaid": false,
+    "paidAt": null,
+    "isDelivered": false,
+    "deliveredAt": null
+  },
+  {
+    "user": "Sarah Wilson",
+    "orderItems": [
+      {
+        "product": "Professional Camera Lens",
+        "qty": 1,
+        "price": 599.99
+      }
+    ],
+    "shippingAddress": {
+      "address": "321 Elm St",
+      "city": "Houston",
+      "postalCode": "77001",
+      "country": "USA"
+    },
+    "paymentMethod": "Credit Card",
+    "itemsPrice": 599.99,
+    "taxPrice": 48.00,
+    "shippingPrice": 15.00,
+    "totalPrice": 662.99,
+    "isPaid": true,
+    "paidAt": "2024-01-25T16:45:00Z",
+    "isDelivered": false,
+    "deliveredAt": null
+  }
+]

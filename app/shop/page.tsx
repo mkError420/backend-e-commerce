@@ -120,7 +120,21 @@ const dealTypes = [
 ]
 
 // products are fetched from backend
-const sampleProducts: any[] = []
+const sampleProducts: any[] = [
+  {
+    id: 1,
+    name: 'Wireless Bluetooth Headphones Pro',
+    price: 89.99,
+    originalPrice: 149.99,
+    image: '/api/placeholder/300/300',
+    rating: 4.5,
+    reviews: 128,
+    badge: 'Best Seller',
+    category: 'Electronics',
+    size: 'One Size',
+    description: 'Premium wireless headphones with noise cancellation and superior sound quality.'
+  },
+  {
     id: 2,
     name: 'Smart Watch Pro Series 5',
     price: 199.99,
@@ -322,18 +336,88 @@ const ShopPage = () => {
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState<string | null>(null)
 
+  const handleRefreshProducts = () => {
+    setProductsLoading(true)
+    setProductsError(null)
+    
+    try {
+      // Reload from localStorage
+      const storedProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
+      
+      if (storedProducts.length > 0) {
+        console.log('Refreshed admin-created products:', storedProducts.length)
+        setProducts(storedProducts)
+      } else {
+        // Try API again
+        fetcher('/api/products')
+          .then(data => {
+            if (data.length === 0) {
+              setProducts(sampleProducts)
+            } else {
+              setProducts(data)
+            }
+            setProductsLoading(false)
+          })
+          .catch(err => {
+            console.error('Refresh failed:', err)
+            setProducts(sampleProducts)
+            setProductsError(err.message)
+            setProductsLoading(false)
+          })
+        return
+      }
+      setProductsLoading(false)
+    } catch (err) {
+      console.error('Error refreshing products:', err)
+      setProductsError('Failed to refresh products')
+      setProducts(sampleProducts)
+      setProductsLoading(false)
+    }
+  }
+
   useEffect(() => {
     setProductsLoading(true)
-    fetcher('/api/products')
-      .then(data => {
-        setProducts(data)
+    setProductsError(null)
+    
+    try {
+      // First try to load from localStorage (admin-created products)
+      const storedProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
+      
+      if (storedProducts.length > 0) {
+        console.log('Loading admin-created products for shop:', storedProducts.length)
+        setProducts(storedProducts)
         setProductsLoading(false)
-      })
-      .catch(err => {
-        console.error('shop page failed to load products', err)
-        setProductsError(err.message)
-        setProductsLoading(false)
-      })
+        return
+      }
+
+      // Fallback to API if no admin products
+      fetcher('/api/products')
+        .then(data => {
+          if (data.length === 0) {
+            // Use sample data if API returns empty
+            console.log('Using sample products for shop')
+            setProducts(sampleProducts)
+          } else {
+            console.log('Using API products for shop:', data.length)
+            setProducts(data)
+          }
+          setProductsLoading(false)
+        })
+        .catch(err => {
+          console.error('Shop page failed to load products from API:', err)
+          // Use sample data as fallback
+          console.log('Using sample products as fallback for shop')
+          setProducts(sampleProducts)
+          setProductsError(err.message)
+          setProductsLoading(false)
+        })
+    } catch (err) {
+      console.error('Error loading shop products:', err)
+      setProductsError('Failed to load products')
+      // Use sample data as ultimate fallback
+      setProducts(sampleProducts)
+      setProductsLoading(false)
+    }
   }, [])
 
   // Filter states
@@ -491,17 +575,33 @@ const ShopPage = () => {
       </div>
 
       {/* Shop Header */}
-      <ShopHeader
-        totalProducts={filteredAndSortedProducts.length}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        showFilters={showFilters}
-        setShowFilters={setShowFilters}
-      />
+      <div className='bg-white border-b sticky top-0 z-40'>
+        <div className='container mx-auto px-4 sm:px-6 py-4'>
+          <div className='flex justify-between items-center'>
+            <div className='flex items-center gap-4'>
+              <h1 className='text-2xl font-bold text-shop_dark_green'>Shop</h1>
+              <button
+                onClick={handleRefreshProducts}
+                className='px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm'
+                disabled={productsLoading}
+              >
+                {productsLoading ? 'Refreshing...' : 'Refresh Products'}
+              </button>
+            </div>
+            <ShopHeader
+              totalProducts={filteredAndSortedProducts.length}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              showFilters={showFilters}
+              setShowFilters={setShowFilters}
+            />
+          </div>
+        </div>
+      </div>
 
       <Container className='py-8'>
         <div className='flex flex-col lg:flex-row gap-8'>

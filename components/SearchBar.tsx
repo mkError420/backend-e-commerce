@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { fetcher } from '@/lib/api'
 import Link from 'next/link'
 import Image from 'next/image'
+import { productsData } from '@/constants/data'
 
 const SearchBar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,8 +19,19 @@ const SearchBar = () => {
   // fetch products once
   useEffect(() => {
     fetcher('/api/products')
-      .then(data => setAllProducts(data))
-      .catch(err => console.error('searchbar failed to fetch products', err))
+      .then(data => {
+        // If API returns empty data, use sample data
+        if (data && data.length === 0) {
+          setAllProducts(productsData)
+        } else {
+          setAllProducts(data)
+        }
+      })
+      .catch(err => {
+        console.error('searchbar failed to fetch products', err)
+        // On error, use sample data as fallback
+        setAllProducts(productsData)
+      })
   }, [])
 
   // Handle search

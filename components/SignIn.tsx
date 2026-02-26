@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
@@ -27,7 +29,5 @@ const SignIn = () => {
     </Link>
   )
 }
-
-export default SignIn
 
 export default SignIn

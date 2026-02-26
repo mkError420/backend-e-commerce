@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Top 10 Wireless Headphones of 2024",
+    "content": "In this comprehensive guide, we review the best wireless headphones available in 2024. From noise-cancelling champions to budget-friendly options, we cover everything you need to know before making your purchase. Our expert team has tested dozens of models to bring you this definitive list.",
+    "author": "Admin User",
+    "categories": ["Electronics"]
+  },
+  {
+    "title": "How to Choose the Perfect Gaming Setup",
+    "content": "Building the perfect gaming setup requires careful consideration of multiple components. In this article, we break down the essential elements including monitors, keyboards, mice, and audio equipment. Whether you're a casual gamer or a professional esports player, this guide will help you create the ideal gaming environment.",
+    "author": "Admin User",
+    "categories": ["Gaming", "Electronics"]
+  },
+  {
+    "title": "Sustainable Fashion Trends for 2024",
+    "content": "The fashion industry is embracing sustainability like never before. Discover the latest eco-friendly materials, ethical manufacturing practices, and brands that are leading the charge toward a more sustainable future. Learn how you can make conscious fashion choices without compromising on style.",
+    "author": "Jane Smith",
+    "categories": ["Fashion"]
+  },
+  {
+    "title": "Home Office Ergonomics: Complete Guide",
+    "content": "Working from home has become the new normal, but is your setup supporting your health? This comprehensive guide covers everything from chair selection to monitor positioning, helping you create an ergonomic workspace that boosts productivity and prevents injury.",
+    "author": "Admin User",
+    "categories": ["Home"]
+  },
+  {
+    "title": "Photography Tips for Beginners",
+    "content": "Ready to take your photography skills to the next level? This article covers fundamental concepts including composition, lighting, and camera settings. Learn how to capture stunning images with any camera, from smartphone to professional DSLR.",
+    "author": "Mike Johnson",
+    "categories": ["Photography"]
+  }
+]
