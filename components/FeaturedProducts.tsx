@@ -1,9 +1,43 @@
-import React from 'react'
+"use client";
+
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ProductCard from './ProductCard'
-import { productsData } from '@/constants/data'
+import { productAPI } from '@/lib/api'
 
 const FeaturedProducts = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const response = await productAPI.getFeaturedProducts();
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching featured products:", error);
+      // Set empty array on error to prevent crashes
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className='py-8 sm:py-12 md:py-16 bg-shop_light_bg'>
+        <div className='max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8'>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-shop_dark_green"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className='py-8 sm:py-12 md:py-16 bg-shop_light_bg'>
       <div className='max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8'>
@@ -19,9 +53,16 @@ const FeaturedProducts = () => {
 
         {/* Products Grid */}
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8'>
-          {productsData.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} viewMode="grid" />
-          ))}
+          {products.length > 0 ? (
+            products.map((product) => (
+              <ProductCard key={product._id} product={product} viewMode="grid" />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">No featured products available at the moment.</p>
+              <p className="text-gray-400 text-sm mt-2">Please check back later or contact an administrator to add products.</p>
+            </div>
+          )}
         </div>
 
         {/* View All Button */}

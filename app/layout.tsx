@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { CartProvider } from "@/contexts/CartContext";
 import { SlideCartProvider } from "@/contexts/SlideCartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import GlobalSlideCart from "@/components/GlobalSlideCart";
 import OfferPopup from "@/components/OfferPopup";
 
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
        <body className="font-poppins antialiased">
+       <AuthProvider>
        <CartProvider>
        <SlideCartProvider>
        <div className="flex flex-col min-h-screen">
@@ -39,6 +41,7 @@ export default function RootLayout({
         <WhatsAppButton />
        </SlideCartProvider>
        </CartProvider>
+       </AuthProvider>
       </body>
     </html>
   );

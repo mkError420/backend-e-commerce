@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Test</title>
+</head>
+<body>
+    <h1>Login Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testLogin() {
+            try {
+                const response = await fetch("http://localhost:5000/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 
+                        email: "admin@example.com", 
+                        password: "123456" 
+                    }),
+                });
+                
+                const data = await response.json();
+                document.getElementById("result").innerHTML = `
+                    <h2>Login Result:</h2>
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                if (data.token) {
+                    console.log("Token received:", data.token);
+                    localStorage.setItem("token", data.token);
+                }
+            } catch (error) {
+                document.getElementById("result").innerHTML = `
+                    <h2>Error:</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Auto-test on page load
+        testLogin();
+    </script>
+</body>
+</html>

@@ -8,15 +8,17 @@ import { useCart } from '@/contexts/CartContext'
 import { useSlideCart } from '@/contexts/SlideCartContext'
 
 interface Product {
-  id: number | string
+  _id?: string
+  id?: number | string
   name: string
   price: number
   originalPrice?: number
-  image: string
+  image?: string
+  images?: string[]
   rating?: number
   reviews?: number
   badge?: string
-  category?: string
+  category?: string | { name: string; _id: string }
   description?: string
 }
 
@@ -32,9 +34,11 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   const [showQuickView, setShowQuickView] = useState(false)
   const discountPercentage = Math.round(((product.originalPrice || product.price) - product.price) / (product.originalPrice || product.price) * 100)
   
-  // Handle both number and string IDs
-  const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id
-  console.log('ProductCard rendering for product:', product.name, 'ID:', productId, 'Type:', typeof product.id) // Debug log
+  // Handle both number and string IDs, prefer _id if available
+  const productId = product._id || product.id
+  const imageUrl = product.images?.[0] || product.image || '/placeholder.jpg'
+  
+  console.log('ProductCard rendering for product:', product.name, 'ID:', productId, 'Type:', typeof productId) // Debug log
   
   const handleAddToCart = () => {
     console.log('Add to Cart button clicked for product:', product.name, 'ID:', productId) // Debug log
@@ -154,12 +158,16 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                 </button>
               </div>
 
-              {/* Placeholder Image */}
-              <div className='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
-                <div className='text-gray-400 text-center'>
-                  <div className='w-16 h-16 bg-gray-300 rounded-lg mx-auto mb-2'></div>
-                  <p className='text-xs'>Product Image</p>
-                </div>
+              {/* Product Image */}
+              <div className='w-full h-full relative'>
+                <img
+                  src={imageUrl}
+                  alt={product.name}
+                  className='w-full h-full object-cover'
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.jpg';
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -170,7 +178,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
               <div>
                 {/* Category */}
                 <div className='text-xs text-shop_dark_green font-semibold mb-2 uppercase tracking-wide'>
-                  {product.category}
+                  {typeof product.category === 'string' ? product.category : product.category?.name}
                 </div>
 
                 {/* Product Name */}
@@ -308,7 +316,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
       <div className='p-6 flex-1 flex flex-col'>
         {/* Category */}
         <div className='text-xs text-shop_dark_green font-semibold mb-2 uppercase tracking-wide'>
-          {product.category}
+          {typeof product.category === 'string' ? product.category : product.category?.name}
         </div>
 
         {/* Product Name */}
@@ -402,7 +410,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                 <div className='space-y-6'>
                   {/* Category */}
                   <div className='text-sm text-shop_dark_green font-semibold uppercase tracking-wide'>
-                    {product.category}
+                    {typeof product.category === 'string' ? product.category : product.category?.name}
                   </div>
 
                   {/* Product Name */}
