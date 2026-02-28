@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ProductCard from './ProductCard'
-import { productAPI } from '@/lib/api'
+import { productAPI } from '@/lib/api/products'
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -16,7 +16,7 @@ const FeaturedProducts = () => {
   const fetchFeaturedProducts = async () => {
     try {
       const response = await productAPI.getFeaturedProducts();
-      setProducts(response.data);
+      setProducts(response);
     } catch (error) {
       console.error("Error fetching featured products:", error);
       // Set empty array on error to prevent crashes

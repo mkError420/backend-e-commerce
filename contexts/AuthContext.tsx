@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      const response = await fetch("http://localhost:5001/api/auth/me", {
+      const response = await fetch("http://localhost:5000/api/auth/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:5001/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:5001/api/auth/register", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

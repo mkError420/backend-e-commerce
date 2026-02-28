@@ -6,9 +6,18 @@ const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/database");
 const errorHandler = require("./middleware/errorHandler");
 
+// Load environment variables
 dotenv.config();
 
-// connectDB(); // Temporarily disabled for testing without MongoDB
+// Use hardcoded values temporarily since dotenv is not working
+const port = process.env.PORT || 5000;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mkshop';
+
+console.log('Using port:', port);
+console.log('Using MONGODB_URI:', MONGODB_URI ? '***configured***' : 'undefined');
+
+// Temporarily comment out database connection to test server startup
+// connectDB();
 
 const app = express();
 
@@ -37,15 +46,13 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/products", require("./routes/products"));
-app.use("/api/categories", require("./routes/categories"));
-app.use("/api/orders", require("./routes/orders"));
+app.use("/api/products", require("./routes/products-mock"));
+app.use("/api/categories", require("./routes/categories-mock"));
+app.use("/api/orders", require("./routes/orders-mock"));
 app.use("/api/users", require("./routes/users"));
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${port}`);
 });

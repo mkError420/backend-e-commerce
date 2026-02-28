@@ -6,14 +6,28 @@ const productSchema = new mongoose.Schema({
     required: [true, "Please enter product name"],
     trim: true,
   },
+  sku: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values
+  },
   description: {
     type: String,
     required: [true, "Please enter product description"],
+  },
+  shortDescription: {
+    type: String,
+    required: [true, "Please enter product short description"],
+    maxlength: [200, "Short description cannot exceed 200 characters"],
   },
   price: {
     type: Number,
     required: [true, "Please enter product price"],
     min: [0, "Price cannot be negative"],
+  },
+  regularPrice: {
+    type: Number,
+    min: [0, "Regular price cannot be negative"],
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,

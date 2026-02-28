@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, logout } = useAuth();
@@ -30,8 +31,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const menuItems = [
     { name: "Dashboard", href: "/admin/dashboard", icon: "" },
     { name: "Products", href: "/admin/products", icon: "" },
-    { name: "Categories", href: "/admin/categories", icon: "️" },
-    { name: "Orders", href: "/admin/orders", icon: "" },
+    { name: "Categories", href: "/admin/categories", icon: "📁" },
+    { name: "Orders", href: "/admin/orders", icon: "📦" },
     { name: "Users", href: "/admin/users", icon: "" },
   ];
 
@@ -44,14 +45,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
           <nav className="flex-1 px-4 py-6 space-y-2">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
                 href={item.href}
                 className="flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100"
               >
                 <span className="mr-3">{item.icon}</span>
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>

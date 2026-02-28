@@ -7,9 +7,11 @@ import ShopHeader from '@/components/ShopHeader';
 import FilterSidebar from '@/components/FilterSidebar';
 import ProductCard from '@/components/ProductCard';
 import Pagination from '@/components/Pagination';
+import { productAPI, Product } from '@/lib/api/products';
+import { categoryAPI, Category } from '@/lib/api/categories';
 
 // Categories and deal types for filters
-const categories = [
+const defaultCategories = [
   { 
     id: 'electronics', 
     name: 'Electronics', 
@@ -22,33 +24,220 @@ const categories = [
     ]
   },
   { 
-    id: 'fashion', 
-    name: 'Fashion', 
-    count: 313,
+    id: 'computers', 
+    name: 'Computers', 
+    count: 89,
     subcategories: [
-      { id: 'mens-clothing', name: "Men's Clothing", count: 120 },
-      { id: 'womens-clothing', name: "Women's Clothing", count: 135 },
-      { id: 'shoes', name: 'Shoes', count: 58 }
+      { id: 'desktops', name: 'Desktops', count: 35 },
+      { id: 'monitors', name: 'Monitors', count: 28 },
+      { id: 'components', name: 'Components', count: 26 }
     ]
   },
   { 
-    id: 'computers', 
-    name: 'Computers', 
-    count: 38,
+    id: 'fashion', 
+    name: 'Fashion', 
+    count: 156,
     subcategories: [
-      { id: 'desktops', name: 'Desktops', count: 15 },
-      { id: 'monitors', name: 'Monitors', count: 12 },
-      { id: 'components', name: 'Components', count: 11 }
+      { id: 'mens-clothing', name: "Men's Clothing", count: 78 },
+      { id: 'womens-clothing', name: "Women's Clothing", count: 92 },
+      { id: 'shoes', name: 'Shoes', count: 45 }
     ]
   },
   { 
     id: 'home', 
     name: 'Home & Living', 
-    count: 105,
+    count: 134,
     subcategories: [
-      { id: 'furniture', name: 'Furniture', count: 45 },
-      { id: 'decor', name: 'Home Decor', count: 35 },
-      { id: 'kitchen', name: 'Kitchen', count: 25 }
+      { id: 'furniture', name: 'Furniture', count: 67 },
+      { id: 'decor', name: 'Home Decor', count: 43 },
+      { id: 'kitchen', name: 'Kitchen', count: 24 }
+    ]
+  },
+  { 
+    id: 'books', 
+    name: 'Books', 
+    count: 89,
+    subcategories: [
+      { id: 'fiction', name: 'Fiction', count: 34 },
+      { id: 'non-fiction', name: 'Non-Fiction', count: 29 },
+      { id: 'educational', name: 'Educational', count: 26 }
+    ]
+  },
+  { 
+    id: 'health', 
+    name: 'Health & Beauty', 
+    count: 167,
+    subcategories: [
+      { id: 'skincare', name: 'Skincare', count: 58 },
+      { id: 'makeup', name: 'Makeup', count: 47 },
+      { id: 'wellness', name: 'Wellness', count: 62 }
+    ]
+  },
+  { 
+    id: 'gaming', 
+    name: 'Gaming', 
+    count: 145,
+    subcategories: [
+      { id: 'consoles', name: 'Gaming Consoles', count: 38 },
+      { id: 'games', name: 'Video Games', count: 67 },
+      { id: 'accessories', name: 'Gaming Accessories', count: 40 }
+    ]
+  },
+  { 
+    id: 'photography', 
+    name: 'Photography', 
+    count: 78,
+    subcategories: [
+      { id: 'cameras', name: 'Cameras', count: 32 },
+      { id: 'lenses', name: 'Lenses', count: 18 },
+      { id: 'accessories', name: 'Photography Accessories', count: 28 }
+    ]
+  },
+  { 
+    id: 'sports', 
+    name: 'Sports & Outdoors', 
+    count: 198,
+    subcategories: [
+      { id: 'fitness', name: 'Fitness', count: 67 },
+      { id: 'outdoor', name: 'Outdoor Gear', count: 89 },
+      { id: 'sports', name: 'Sports Equipment', count: 42 }
+    ]
+  },
+  { 
+    id: 'toys', 
+    name: 'Toys & Games', 
+    count: 123,
+    subcategories: [
+      { id: 'toys', name: 'Toys', count: 68 },
+      { id: 'games', name: 'Games', count: 55 }
+    ]
+  },
+  { 
+    id: 'baby', 
+    name: 'Baby & Kids', 
+    count: 156,
+    subcategories: [
+      { id: 'baby-clothing', name: 'Baby Clothing', count: 78 },
+      { id: 'toys', name: 'Kids Toys', count: 45 },
+      { id: 'furniture', name: 'Kids Furniture', count: 33 }
+    ]
+  },
+  { 
+    id: 'automotive', 
+    name: 'Automotive', 
+    count: 89,
+    subcategories: [
+      { id: 'parts', name: 'Auto Parts', count: 45 },
+      { id: 'accessories', name: 'Car Accessories', count: 44 }
+    ]
+  },
+  { 
+    id: 'music', 
+    name: 'Music & Audio', 
+    count: 134,
+    subcategories: [
+      { id: 'headphones', name: 'Headphones', count: 58 },
+      { id: 'speakers', name: 'Speakers', count: 42 },
+      { id: 'instruments', name: 'Musical Instruments', count: 34 }
+    ]
+  },
+  { 
+    id: 'travel', 
+    name: 'Travel', 
+    count: 112,
+    subcategories: [
+      { id: 'luggage', name: 'Luggage', count: 56 },
+      { id: 'accessories', name: 'Travel Accessories', count: 56 }
+    ]
+  },
+  { 
+    id: 'jewelry', 
+    name: 'Jewelry & Watches', 
+    count: 145,
+    subcategories: [
+      { id: 'watches', name: 'Watches', count: 67 },
+      { id: 'jewelry', name: 'Jewelry', count: 78 }
+    ]
+  },
+  { 
+    id: 'food', 
+    name: 'Food & Beverages', 
+    count: 98,
+    subcategories: [
+      { id: 'snacks', name: 'Snacks', count: 45 },
+      { id: 'beverages', name: 'Beverages', count: 53 }
+    ]
+  },
+  { 
+    id: 'art', 
+    name: 'Art & Crafts', 
+    count: 67,
+    subcategories: [
+      { id: 'art-supplies', name: 'Art Supplies', count: 34 },
+      { id: 'crafts', name: 'Crafts', count: 33 }
+    ]
+  },
+  { 
+    id: 'pets', 
+    name: 'Pet Supplies', 
+    count: 89,
+    subcategories: [
+      { id: 'dog', name: 'Dog Supplies', count: 45 },
+      { id: 'cat', name: 'Cat Supplies', count: 44 }
+    ]
+  },
+  { 
+    id: 'tools', 
+    name: 'Tools & Hardware', 
+    count: 123,
+    subcategories: [
+      { id: 'power-tools', name: 'Power Tools', count: 56 },
+      { id: 'hand-tools', name: 'Hand Tools', count: 67 }
+    ]
+  },
+  { 
+    id: 'kitchen', 
+    name: 'Kitchen & Dining', 
+    count: 145,
+    subcategories: [
+      { id: 'cookware', name: 'Cookware', count: 67 },
+      { id: 'dinnerware', name: 'Dinnerware', count: 78 }
+    ]
+  },
+  { 
+    id: 'tv', 
+    name: 'TV & Home Theater', 
+    count: 89,
+    subcategories: [
+      { id: 'tvs', name: 'TVs', count: 45 },
+      { id: 'audio', name: 'Audio Systems', count: 44 }
+    ]
+  },
+  { 
+    id: 'audio', 
+    name: 'Audio & Headphones', 
+    count: 112,
+    subcategories: [
+      { id: 'headphones', name: 'Headphones', count: 67 },
+      { id: 'speakers', name: 'Speakers', count: 45 }
+    ]
+  },
+  { 
+    id: 'office', 
+    name: 'Office Supplies', 
+    count: 78,
+    subcategories: [
+      { id: 'desk-supplies', name: 'Desk Supplies', count: 45 },
+      { id: 'furniture', name: 'Office Furniture', count: 33 }
+    ]
+  },
+  { 
+    id: 'gifts', 
+    name: 'Gifts & Occasions', 
+    count: 89,
+    subcategories: [
+      { id: 'gifts', name: 'Gifts', count: 56 },
+      { id: 'occasions', name: 'Occasions', count: 33 }
     ]
   },
   { 
@@ -167,8 +356,8 @@ const sampleProducts = [
     image: '/api/placeholder/300/300',
     rating: 4.9,
     reviews: 278,
-    badge: 'Books',
-    category: 'Beauty',
+    badge: 'Eco',
+    category: 'Health & Beauty',
     size: 'S',
     description: 'Complete organic skincare routine for radiant skin.'
   },
@@ -180,9 +369,9 @@ const sampleProducts = [
     image: '/api/placeholder/300/300',
     rating: 4.5,
     reviews: 89,
-    badge: 'Sports',
-    category: 'Sports',
-    size: 'M',
+    badge: 'Popular',
+    category: 'Sports & Outdoors',
+    size: 'S',
     description: 'Extra thick yoga mat with superior grip and cushioning.'
   },
   {
@@ -207,7 +396,7 @@ const sampleProducts = [
     rating: 4.8,
     reviews: 234,
     badge: 'Toys',
-    category: 'Toys',
+    category: 'Toys & Games',
     size: 'S',
     description: 'Creative building blocks that enhance problem-solving skills.'
   },
@@ -220,35 +409,35 @@ const sampleProducts = [
     rating: 4.3,
     reviews: 67,
     badge: 'Eco',
-    category: 'Sports',
+    category: 'Sports & Outdoors',
     size: 'S',
     description: 'Insulated water bottle that keeps drinks cold for 24 hours.'
   },
   {
     id: 9,
-    name: 'Classic Literature Collection',
-    price: 59.99,
-    originalPrice: 99.99,
+    name: 'Professional Camera Lens Kit',
+    price: 299.99,
+    originalPrice: 449.99,
     image: '/api/placeholder/300/300',
     rating: 4.7,
-    reviews: 278,
-    badge: 'Books',
-    category: 'Books',
+    reviews: 145,
+    badge: 'Pro',
+    category: 'Photography',
     size: 'M',
-    description: 'Collection of award-winning novels from various genres.'
+    description: 'Professional lens kit for photography enthusiasts.'
   },
   {
     id: 10,
-    name: 'Yoga Mat Premium Non-Slip',
-    price: 49.99,
-    originalPrice: 79.99,
+    name: 'Gaming Laptop Pro',
+    price: 1299.99,
+    originalPrice: 1599.99,
     image: '/api/placeholder/300/300',
-    rating: 4.5,
+    rating: 4.6,
     reviews: 89,
-    badge: 'Sports',
-    category: 'Sports',
+    badge: 'Gaming',
+    category: 'Computers',
     size: 'M',
-    description: 'Extra thick yoga mat with superior grip and cushioning.'
+    description: 'High-performance gaming laptop with dedicated graphics card.'
   },
   {
     id: 11,
@@ -326,16 +515,107 @@ const ShopPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState('featured')
   const [searchTerm, setSearchTerm] = useState('')
+  const [categories, setCategories] = useState(defaultCategories)
+
+  // Fetch categories from API to sync with admin categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const apiCategories = await categoryAPI.getCategories()
+        const transformedCategories = categoryAPI.transformToShopFormat(apiCategories)
+        setCategories(transformedCategories)
+      } catch (error) {
+        console.error('Failed to fetch categories:', error)
+        // Keep default categories if API fails
+      }
+    }
+    
+    fetchCategories()
+    
+    // Set up periodic refresh to sync with admin changes
+    const interval = setInterval(fetchCategories, 30000) // Refresh every 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [])
+  
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(9)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   // Filter states
-  const [selectedCategory, setSelectedCategory] = useState<string[]>(['all'])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['all'])
   const [selectedRatings, setSelectedRatings] = useState<number[]>([])
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 })
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Fetch all products without pagination for proper filtering
+        const params: any = {
+          pageNumber: 1,
+        }
+        
+        if (searchTerm) {
+          params.keyword = searchTerm
+        }
+        
+        // Remove category filtering from API call - do it client-side instead
+        
+        const response = await productAPI.getProducts(params)
+        setProducts(response.products || [])
+        // Don't set totalPages here since we're doing client-side pagination
+      } catch (err: any) {
+        setError('Failed to load products')
+        console.error('Error fetching products:', err)
+        console.error('Error details:', err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchProducts()
+  }, []) // Remove dependencies since we're using sample products
+
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = sampleProducts.filter(product => {
+      // Search filter
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      // Category filter - match by category name
+      const matchesCategory = selectedCategories.includes('all') || 
+        selectedCategories.some(cat => product.category === cat)
+      
+      return matchesSearch && matchesCategory
+    })
+
+    // Sort products
+    switch (sortBy) {
+      case 'price-low':
+        return filtered.sort((a, b) => a.price - b.price)
+      case 'price-high':
+        return filtered.sort((a, b) => b.price - a.price)
+      case 'name-asc':
+        return filtered.sort((a, b) => a.name.localeCompare(b.name))
+      case 'name-desc':
+        return filtered.sort((a, b) => b.name.localeCompare(a.name))
+      case 'rating':
+        return filtered.sort((a, b) => b.rating - a.rating)
+      default:
+        // featured - keep original order
+        return filtered
+    }
+  }, [sampleProducts, searchTerm, selectedCategories, sortBy])
 
   // Auto-play carousel
   useEffect(() => {
@@ -359,43 +639,9 @@ const ShopPage = () => {
     setCurrentSlide(index)
   }
 
-  // Filter and sort products
-  const filteredAndSortedProducts = useMemo(() => {
-    let filtered = sampleProducts.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      const matchesCategory = selectedCategory.includes('all') || selectedCategory.some(cat => product.category.toLowerCase() === cat.toLowerCase())
-      
-      const matchesPriceRange = product.price >= priceRange.min && product.price <= priceRange.max
-      
-      const matchesRatings = selectedRatings.length === 0 || selectedRatings.includes(Math.floor(product.rating))
-      
-      const matchesSizes = selectedSizes.length === 0 || selectedSizes.includes(product.size || '')
-      
-      return matchesSearch && matchesCategory && matchesPriceRange && matchesRatings && matchesSizes
-    })
-
-    // Sort products
-    switch (sortBy) {
-      case 'price-low':
-        return filtered.sort((a, b) => a.price - b.price)
-      case 'price-high':
-        return filtered.sort((a, b) => b.price - a.price)
-      case 'name-asc':
-        return filtered.sort((a, b) => a.name.localeCompare(b.name))
-      case 'name-desc':
-        return filtered.sort((a, b) => b.name.localeCompare(a.name))
-      case 'rating':
-        return filtered.sort((a, b) => b.rating - a.rating)
-      default:
-        // featured - keep original order
-        return filtered
-    }
-  }, [searchTerm, sortBy, selectedCategory, selectedRatings, selectedSizes, priceRange])
-
   // Pagination
-  const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage)
+  const totalProducts = filteredAndSortedProducts.length
+  const totalPages = Math.ceil(totalProducts / itemsPerPage)
   const currentProducts = filteredAndSortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -507,16 +753,16 @@ const ShopPage = () => {
               setShowFilters={setShowFilters}
               categories={categories}
               dealTypes={dealTypes}
-              selectedCategories={selectedCategory}
-              setSelectedCategories={setSelectedCategory}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
               selectedDealType="all"
               setSelectedDealType={() => {}}
               sortBy={sortBy}
               setSortBy={setSortBy}
-              selectedRatings={selectedRatings}
-              setSelectedRatings={setSelectedRatings}
-              selectedSizes={selectedSizes}
-              setSelectedSizes={setSelectedSizes}
+              selectedRatings={[]}
+              setSelectedRatings={() => {}}
+              selectedSizes={[]}
+              setSelectedSizes={() => {}}
               priceRange={priceRange}
               setPriceRange={setPriceRange}
             />
@@ -524,8 +770,31 @@ const ShopPage = () => {
 
           {/* Main Content */}
           <main className='flex-1'>
+            {/* Loading State */}
+            {loading && (
+              <div className='text-center py-16'>
+                <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-shop_dark_green mx-auto mb-4'></div>
+                <p className='text-gray-600'>Loading products...</p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className='text-center py-16'>
+                <div className='text-red-500 text-6xl mb-4'>⚠️</div>
+                <h3 className='text-xl font-semibold text-red-600 mb-2'>Error Loading Products</h3>
+                <p className='text-gray-600 mb-6'>{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className='bg-shop_dark_green text-white px-6 py-3 rounded-xl font-semibold hover:bg-shop_dark_green hover:shadow-lg hoverEffect'
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
+
             {/* Products Grid/List */}
-            {currentProducts.length > 0 ? (
+            {!loading && !error && currentProducts.length > 0 ? (
               <>
                 <div className={`
                   grid gap-6
@@ -554,7 +823,7 @@ const ShopPage = () => {
                   />
                 )}
               </>
-            ) : (
+            ) : !loading && !error && (
               <div className='text-center py-16'>
                 <div className='text-shop_dark_green text-6xl mb-4'>🔍</div>
                 <h3 className='text-xl font-semibold text-shop_light_green mb-2'>
@@ -567,7 +836,7 @@ const ShopPage = () => {
                   onClick={() => {
                     setSearchTerm('')
                     setCurrentPage(1)
-                    setSelectedCategory(['all'])
+                    setSelectedCategories(['all'])
                     setSelectedRatings([])
                     setSelectedSizes([])
                     setPriceRange({ min: 0, max: 1000 })
@@ -587,3 +856,6 @@ const ShopPage = () => {
 }
 
 export default ShopPage;
+
+
+

@@ -35,12 +35,14 @@ const getProductById = asyncHandler(async (req, res) => {
 });
 
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, price, category, images, stock, featured } = req.body;
+  const { name, description, shortDescription, price, regularPrice, category, images, stock, featured } = req.body;
 
   const product = await Product.create({
     name,
     description,
+    shortDescription,
     price,
+    regularPrice,
     category,
     images,
     stock,
@@ -53,7 +55,7 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, description, price, category, images, stock, featured } = req.body;
+  const { name, description, shortDescription, price, regularPrice, category, images, stock, featured } = req.body;
 
   const product = await Product.findById(req.params.id);
 
@@ -64,7 +66,9 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   product.name = name || product.name;
   product.description = description || product.description;
+  product.shortDescription = shortDescription || product.shortDescription;
   product.price = price || product.price;
+  product.regularPrice = regularPrice !== undefined ? regularPrice : product.regularPrice;
   product.category = category || product.category;
   product.images = images || product.images;
   product.stock = stock || product.stock;
@@ -82,7 +86,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found");
   }
 
-  await product.remove();
+  await Product.findByIdAndDelete(req.params.id);
   res.json({ message: "Product removed" });
 });
 

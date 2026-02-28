@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useSlideCart } from '@/contexts/SlideCartContext'
-import { productsData } from '@/constants/data'
+import { productAPI, Product } from '@/lib/api/products'
 
 const ProductDetailPage = () => {
   const params = useParams()
@@ -36,6 +36,9 @@ const ProductDetailPage = () => {
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [modalImageIndex, setModalImageIndex] = useState(0)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [reviews, setReviews] = useState([
     {
       id: 1,
@@ -79,13 +82,31 @@ const ProductDetailPage = () => {
   const [shareModal, setShareModal] = useState<{ open: boolean; reviewId: number | null }>({ open: false, reviewId: null })
   const [reportReason, setReportReason] = useState('')
 
-  // Find product by ID
-  const product = productsData.find(p => p.id === parseInt(params.id as string))
+  // Fetch product from API
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!params.id) return
+      
+      try {
+        setLoading(true)
+        setError(null)
+        const productData = await productAPI.getProductById(params.id as string)
+        setProduct(productData)
+      } catch (err) {
+        setError('Failed to load product')
+        console.error('Error fetching product:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchProduct()
+  }, [params.id])
 
   // Load reviews from localStorage on component mount
   React.useEffect(() => {
     if (product) {
-      const storedReviews = localStorage.getItem(`product_reviews_${product.id}`)
+      const storedReviews = localStorage.getItem(`product_reviews_${product._id}`)
       if (storedReviews) {
         try {
           const parsedReviews = JSON.parse(storedReviews)
@@ -95,30 +116,45 @@ const ProductDetailPage = () => {
         }
       }
     }
-  }, [product?.id])
+  }, [product?._id])
 
   // Save reviews to localStorage whenever they change
   React.useEffect(() => {
     if (product && reviews.length > 0) {
-      localStorage.setItem(`product_reviews_${product.id}`, JSON.stringify(reviews))
+      localStorage.setItem(`product_reviews_${product._id}`, JSON.stringify(reviews))
     }
-  }, [reviews, product?.id])
+  }, [reviews, product?._id])
 
   // Check if product is already in wishlist on component mount
   React.useEffect(() => {
     if (product) {
       const currentWishlist = JSON.parse(localStorage.getItem('wishlist_items') || '[]')
-      const isInWishlist = currentWishlist.some((item: any) => item.id === product.id)
+      const isInWishlist = currentWishlist.some((item: any) => item.id === product._id)
       setIsInWishlist(isInWishlist)
     }
-  }, [product?.id])
+  }, [product?._id])
 
-  if (!product) {
+  if (loading) {
     return (
       <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
         <div className='text-center'>
-          <h2 className='text-2xl font-semibold text-gray-900 mb-4'>Product Not Found</h2>
-          <p className='text-gray-600 mb-8'>The product you're looking for doesn't exist.</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-shop_dark_green mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading product...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-center'>
+          <h2 className='text-2xl font-semibold text-gray-900 mb-4'>
+            {error || 'Product Not Found'}
+          </h2>
+          <p className='text-gray-600 mb-8'>
+            {error || 'The product you\'re looking for doesn\'t exist.'}
+          </p>
           <Link 
             href='/shop'
             className='inline-flex items-center bg-shop_btn_dark_green text-white px-8 py-3 rounded-xl font-semibold hover:bg-shop_dark_green hover:shadow-lg transition-all duration-300'
@@ -136,7 +172,10 @@ const ProductDetailPage = () => {
   const handleAddToCart = () => {
     const productToAdd = {
       ...product,
-      quantity: quantity
+      id: product._id,
+      quantity: quantity,
+      reviews: product.numReviews,
+      category: typeof product.category === 'string' ? product.category : product.category?.name || ''
     }
     addToCart(productToAdd, 'product')
     openSlideCart()
@@ -160,6 +199,9 @@ const ProductDetailPage = () => {
       // Add to wishlist
       const wishlistItem = {
         ...product,
+        id: product._id,
+        reviews: product.numReviews,
+        category: typeof product.category === 'string' ? product.category : product.category?.name || '',
         addedDate: new Date().toISOString()
       }
       const updatedWishlist = [...currentWishlist, wishlistItem]
@@ -167,7 +209,7 @@ const ProductDetailPage = () => {
       console.log('Added to wishlist:', product.name)
     } else {
       // Remove from wishlist
-      const updatedWishlist = currentWishlist.filter((item: any) => item.id !== product.id)
+      const updatedWishlist = currentWishlist.filter((item: any) => item.id !== product._id)
       localStorage.setItem('wishlist_items', JSON.stringify(updatedWishlist))
       console.log('Removed from wishlist:', product.name)
     }
@@ -223,7 +265,7 @@ const ProductDetailPage = () => {
     const review = reviews.find(r => r.id === shareModal.reviewId)
     if (review) {
       const shareText = `Check out this review: "${review.title}" - ${review.comment.substring(0, 100)}...`
-      const shareUrl = `${window.location.origin}/product/${product.id}#review-${shareModal.reviewId}`
+      const shareUrl = `${window.location.origin}/product/${product._id}#review-${shareModal.reviewId}`
       
       switch (platform) {
         case 'facebook':
@@ -345,7 +387,7 @@ const ProductDetailPage = () => {
             {/* Header */}
             <div>
               <div className='text-sm text-shop_dark_green font-semibold mb-2 uppercase tracking-wide'>
-                {product.category}
+                {typeof product.category === 'string' ? product.category : product.category?.name || ''}
               </div>
               <h1 className='text-3xl font-bold text-gray-900 mb-4'>{product.name}</h1>
               
@@ -364,7 +406,7 @@ const ProductDetailPage = () => {
                   ))}
                 </div>
                 <span className='text-sm text-gray-600'>
-                  {product.rating} ({product.reviews} reviews)
+                  {product.rating} ({product.numReviews} reviews)
                 </span>
               </div>
             </div>
@@ -500,7 +542,7 @@ const ProductDetailPage = () => {
                   <dl className='space-y-3'>
                     <div className='flex justify-between py-2 border-b border-gray-100'>
                       <dt className='text-gray-600'>Category</dt>
-                      <dd className='font-medium text-gray-900'>{product.category}</dd>
+                      <dd className='font-medium text-gray-900'>{typeof product.category === 'string' ? product.category : product.category?.name || ''}</dd>
                     </div>
                     <div className='flex justify-between py-2 border-b border-gray-100'>
                       <dt className='text-gray-600'>Condition</dt>
@@ -554,7 +596,7 @@ const ProductDetailPage = () => {
                   ))}
                 </div>
                 <div className='text-gray-600'>
-                  Based on {product.reviews || reviews.length} reviews
+                  Based on {product.numReviews || reviews.length} reviews
                 </div>
               </div>
 
@@ -901,26 +943,12 @@ const ProductDetailPage = () => {
         <div className='mt-16'>
           <h2 className='text-2xl font-bold text-gray-900 mb-8'>Related Products</h2>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-            {productsData
-              .filter(p => p.category === product.category && p.id !== product.id)
-              .slice(0, 4)
-              .map(relatedProduct => (
-                <div key={relatedProduct.id} className='bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6'>
-                  <div className='w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg mb-4 flex items-center justify-center'>
-                    <div className='w-16 h-16 bg-gray-300 rounded'></div>
-                  </div>
-                  <h3 className='font-semibold text-gray-900 mb-2 line-clamp-2'>{relatedProduct.name}</h3>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-lg font-bold text-shop_dark_green'>৳{relatedProduct.price}</span>
-                    <Link 
-                      href={`/product/${relatedProduct.id}`}
-                      className='text-shop_dark_green hover:underline text-sm font-medium'
-                    >
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              ))}
+            {/* We'll fetch related products from API in the future */}
+            <div className='bg-white rounded-xl shadow-sm p-6 text-center'>
+              <div className='w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg mb-4 flex items-center justify-center'>
+                <p className='text-gray-500'>Related products coming soon</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

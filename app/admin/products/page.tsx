@@ -3,17 +3,37 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../layout";
 import { productAPI, categoryAPI } from "@/lib/api";
+import { Product } from "@/lib/api/products";
+import { AxiosResponse } from "axios";
+
+interface ProductFormData {
+  name: string;
+  description: string;
+  shortDescription: string;
+  price: string;
+  regularPrice: string;
+  category: string;
+  stock: string;
+  featured: boolean;
+  images: string[];
+}
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const itemsPerPage = 8;
+  const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
+    shortDescription: "",
     price: "",
+    regularPrice: "",
     category: "",
     stock: "",
     featured: false,
@@ -22,17 +42,20 @@ const AdminProducts = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const [productsRes, categoriesRes] = await Promise.all([
-        productAPI.getProducts(),
+        productAPI.getProducts({ page: currentPage }),
         categoryAPI.getCategories(),
       ]);
       
       setProducts(productsRes.data.products || []);
-      setCategories(categoriesRes.data);
+      setTotalPages(productsRes.data.pages || 1);
+      setTotalProducts(productsRes.data.products?.length || 0);
+      setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : []);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -40,12 +63,17 @@ const AdminProducts = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
+        regularPrice: formData.regularPrice ? parseFloat(formData.regularPrice) : undefined,
         stock: parseInt(formData.stock),
         images: formData.images.filter(img => img.trim() !== ""),
       };
@@ -61,7 +89,9 @@ const AdminProducts = () => {
       setFormData({
         name: "",
         description: "",
+        shortDescription: "",
         price: "",
+        regularPrice: "",
         category: "",
         stock: "",
         featured: false,
@@ -73,13 +103,15 @@ const AdminProducts = () => {
     }
   };
 
-  const handleEdit = (product) => {
+  const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
       description: product.description,
+      shortDescription: product.shortDescription || "",
       price: product.price.toString(),
-      category: product.category._id,
+      regularPrice: product.regularPrice?.toString() || "",
+      category: typeof product.category === 'string' ? product.category : product.category?._id || '',
       stock: product.stock.toString(),
       featured: product.featured,
       images: product.images.length > 0 ? product.images : [""],
@@ -87,7 +119,7 @@ const AdminProducts = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       try {
         await productAPI.deleteProduct(id);
@@ -98,7 +130,7 @@ const AdminProducts = () => {
     }
   };
 
-  const handleImageChange = (index, value) => {
+  const handleImageChange = (index: number, value: string) => {
     const newImages = [...formData.images];
     newImages[index] = value;
     setFormData({ ...formData, images: newImages });
@@ -108,7 +140,7 @@ const AdminProducts = () => {
     setFormData({ ...formData, images: [...formData.images, ""] });
   };
 
-  const removeImageField = (index) => {
+  const removeImageField = (index: number) => {
     const newImages = formData.images.filter((_, i) => i !== index);
     setFormData({ ...formData, images: newImages });
   };
@@ -127,13 +159,20 @@ const AdminProducts = () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Add Product
-          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Showing {products.length} of {totalProducts} products
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Add Product
+            </button>
+          </div>
         </div>
 
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -167,7 +206,9 @@ const AdminProducts = () => {
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{product.category?.name || "N/A"}</div>
+                    <div className="text-sm text-gray-500">
+                      {typeof product.category === 'string' ? product.category : product.category?.name || "N/A"}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">${product.price}</div>
@@ -202,6 +243,70 @@ const AdminProducts = () => {
           </table>
         </div>
 
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing page <span className="font-medium">{currentPage}</span> of{' '}
+                  <span className="font-medium">{totalPages}</span> pages
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  {[...Array(totalPages)].map((_, index) => {
+                    const page = index + 1;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === page
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showModal && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -220,13 +325,25 @@ const AdminProducts = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700">Short Description</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={200}
+                    value={formData.shortDescription}
+                    onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="Brief description (max 200 characters)"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700">Description</label>
                   <textarea
                     required
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                    rows="3"
+                    rows={3}
                   />
                 </div>
                 <div>
@@ -241,6 +358,17 @@ const AdminProducts = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700">Regular Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.regularPrice}
+                    onChange={(e) => setFormData({ ...formData, regularPrice: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="Original price (optional)"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700">Category</label>
                   <select
                     required
@@ -249,7 +377,7 @@ const AdminProducts = () => {
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   >
                     <option value="">Select a category</option>
-                    {categories.map((category) => (
+                    {categories.map((category: any) => (
                       <option key={category._id} value={category._id}>
                         {category.name}
                       </option>

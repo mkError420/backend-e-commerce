@@ -183,7 +183,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
 
                 {/* Product Name */}
                 <h3 className='text-lg font-semibold text-gray-900 mb-2 hover:text-shop_dark_green transition-colors duration-300'>
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/product/${productId}`}>
                     {product.name}
                   </Link>
                 </h3>
@@ -303,12 +303,16 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
           </button>
         </div>
 
-        {/* Placeholder Image */}
-        <div className='w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'>
-          <div className='text-gray-400 text-center'>
-            <div className='w-24 h-24 bg-gray-300 rounded-lg mx-auto mb-2'></div>
-            <p className='text-sm'>Product Image</p>
-          </div>
+        {/* Product Image */}
+        <div className='w-full h-64 relative'>
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className='w-full h-full object-cover'
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.jpg';
+            }}
+          />
         </div>
       </div>
 
@@ -321,7 +325,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
 
         {/* Product Name */}
         <h3 className='text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-shop_dark_green transition-colors duration-300'>
-          <Link href={`/product/${product.id}`}>
+          <Link href={`/product/${productId}`}>
             {product.name}
           </Link>
         </h3>
@@ -390,11 +394,15 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
               <div className='grid md:grid-cols-2 gap-8'>
                 {/* Product Image */}
                 <div className='relative'>
-                  <div className='w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center'>
-                    <div className='text-gray-400 text-center'>
-                      <div className='w-32 h-32 bg-gray-300 rounded-xl mx-auto mb-4'></div>
-                      <p className='text-lg'>Product Image</p>
-                    </div>
+                  <div className='w-full h-96 rounded-xl overflow-hidden'>
+                    <img
+                      src={imageUrl}
+                      alt={product.name}
+                      className='w-full h-full object-cover'
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.jpg';
+                      }}
+                    />
                   </div>
                   
                   {/* Discount Badge */}

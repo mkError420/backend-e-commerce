@@ -15,13 +15,17 @@ const AdminDashboard = () => {
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [dashboardProducts, setDashboardProducts] = useState<any[]>([]);
   const [salesData, setSalesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("7d");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 8;
 
   useEffect(() => {
     fetchDashboardData();
-  }, [timeRange]);
+  }, [timeRange, currentPage]);
 
   const fetchDashboardData = async () => {
     try {
@@ -32,7 +36,17 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Mock data for demonstration - in production, fetch from actual APIs
+      // Fetch real products with pagination
+      const productsResponse = await fetch(`http://localhost:5001/api/products?pageNumber=${currentPage}&limit=${itemsPerPage}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      const productsData = await productsResponse.json();
+      
+      // Mock data for other dashboard items - in production, fetch from actual APIs
       const mockData = {
         stats: {
           totalProducts: 156,
@@ -107,6 +121,10 @@ const AdminDashboard = () => {
       setRecentOrders(mockData.recentOrders);
       setTopProducts(mockData.topProducts);
       setSalesData(mockData.salesData);
+      
+      // Set real products with pagination
+      setDashboardProducts(productsData.products || []);
+      setTotalPages(productsData.pages || 1);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -114,10 +132,14 @@ const AdminDashboard = () => {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       const token = localStorage.getItem("token");
-      await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      await fetch(`http://localhost:5001/api/orders/${orderId}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -337,37 +359,95 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Top Products */}
+          {/* Products Section */}
           <div className="bg-white shadow rounded-xl overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Top Products</h3>
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Products</h3>
+              <span className="text-sm text-gray-500">
+                Page {currentPage} of {totalPages}
+              </span>
             </div>
             <div className="p-6">
-              <div className="space-y-4">
-                {topProducts.map((product, index) => (
-                  <div key={product._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                        index === 0 ? "bg-yellow-500" : index === 1 ? "bg-gray-400" : index === 2 ? "bg-orange-600" : "bg-blue-500"
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{product.name}</p>
-                        <p className="text-sm text-gray-500">{product.sales} sold</p>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {dashboardProducts.map((product, index) => (
+                  <div key={product._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="w-full h-32 bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+                      {product.images && product.images.length > 0 ? (
+                        <img 
+                          src={product.images[0]} 
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.jpg';
+                          }}
+                        />
+                      ) : (
+                        <div className="text-gray-400 text-center">
+                          <div className="w-12 h-12 bg-gray-300 rounded-lg mx-auto mb-2"></div>
+                          <p className="text-xs">No Image</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">${product.revenue.toLocaleString()}</p>
-                      <p className="text-sm text-gray-500">revenue</p>
+                    <h4 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">{product.name}</h4>
+                    <p className="text-lg font-bold text-blue-600">${product.price}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-gray-500">
+                        Stock: {product.stock}
+                      </span>
+                      {product.featured && (
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          Featured
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="text-sm text-gray-700">
+                    Showing {dashboardProducts.length} products
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    {[...Array(totalPages)].map((_, index) => {
+                      const page = index + 1;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 text-sm border rounded-md ${
+                            currentPage === page
+                              ? 'bg-blue-500 text-white border-blue-500'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
               <a href="/admin/products" className="text-sm font-medium text-blue-600 hover:text-blue-900">
-                View all products →
+                Manage all products →
               </a>
             </div>
           </div>
