@@ -33,7 +33,7 @@ app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000, // Increased from 100 to 1000 for development
   message: "Too many requests from this IP, please try again later.",
 });
 app.use("/api/", limiter);
