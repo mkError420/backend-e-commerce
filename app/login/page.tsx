@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import Container from '@/components/Container'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
 import { 
   Eye, 
   EyeOff, 
@@ -67,33 +65,19 @@ const LoginPage = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const { login, register } = useAuth()
-  const router = useRouter()
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     if (!validateForm()) return
-
+    
     setIsLoading(true)
-    try {
-      if (isLogin) {
-        await login(formData.email, formData.password)
-      } else {
-        await register(formData.fullName, formData.email, formData.password)
-      }
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false)
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
-      // redirect after successful login/signup
-      setTimeout(() => {
-        router.push('/')
-      }, 1500)
-    } catch (err: any) {
-      console.error(err)
-      setErrors({ submit: err.info?.message || err.message })
-    } finally {
-      setIsLoading(false)
-    }
+    }, 2000)
   }
 
   const toggleMode = () => {
@@ -170,12 +154,6 @@ const LoginPage = () => {
                 <span className='text-green-800 font-medium'>
                   {isLogin ? 'Login successful! Redirecting...' : 'Account created successfully!'}
                 </span>
-              </div>
-            )}
-            {errors.submit && (
-              <div className='bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center'>
-                <AlertCircle className='w-5 h-5 text-red-600 mr-3' />
-                <span className='text-red-800 font-medium'>{errors.submit}</span>
               </div>
             )}
 

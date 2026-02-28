@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
-import { fetcher } from '@/lib/api'
 
 const PaymentConfirmationContent = () => {
   const searchParams = useSearchParams()
@@ -26,36 +25,48 @@ const PaymentConfirmationContent = () => {
 
   useEffect(() => {
     setMounted(true)
-
-    const orderId = searchParams?.get('order')
-    if (!orderId) return
-
-    // fetch order from backend
-    fetcher(`/api/orders/${orderId}`)
-      .then((order: any) => {
-        setOrderDetails({
-          orderNumber: order._id,
-          amount: order.totalPrice,
-          items: order.orderItems.length,
-          paymentMethod: order.paymentMethod,
-          estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-          }),
-          customerEmail: order.shippingAddress?.email || '',
-          customerAddress: order.shippingAddress?.address || '',
-          customerDistrict: order.shippingAddress?.city || '',
-          products: order.orderItems.map((it: any) => ({
-            name: it.product.name || '',
-            price: it.price,
-            quantity: it.qty,
-          })),
-        })
-      })
-      .catch(err => {
-        console.error('Could not load order details', err)
-      })
+    
+    // Generate order number in new format: ORD-last 2 digit of year + first 2 letter product name + 3 digit number
+    const currentYear = new Date().getFullYear()
+    const lastTwoDigitsYear = currentYear.toString().slice(-2)
+    const productName = 'PR' // Default product name (can be made dynamic)
+    const randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+    const orderId = `ORD-${lastTwoDigitsYear}${productName}${randomNumber}`
+    const amount = searchParams?.get('amount') || '0'
+    const items = searchParams?.get('items') || '0'
+    const paymentMethod = searchParams?.get('method') || 'Card'
+    
+    setOrderDetails({
+      orderNumber: orderId,
+      amount: parseFloat(amount) || 0,
+      items: parseInt(items) || 0,
+      paymentMethod: paymentMethod,
+      estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      }),
+      customerEmail: searchParams?.get('email') || 'customer@example.com',
+      customerAddress: searchParams?.get('address') || '123 Main Street, Dhaka',
+      customerDistrict: searchParams?.get('district') || 'Dhaka',
+      products: [
+        {
+          name: 'Premium T-Shirt',
+          price: 29.99,
+          quantity: 1
+        },
+        {
+          name: 'Classic Jeans',
+          price: 49.99,
+          quantity: 1
+        },
+        {
+          name: 'Sports Shoes',
+          price: 69.99,
+          quantity: 1
+        }
+      ]
+    })
   }, [searchParams])
 
   const downloadReceipt = async () => {

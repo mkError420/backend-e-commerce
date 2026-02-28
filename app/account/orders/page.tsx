@@ -3,12 +3,9 @@
 import React, { useState, useEffect } from 'react'
 import { Package, Truck, CheckCircle, Clock, ArrowRight, Filter, Search, Eye, Download } from 'lucide-react'
 import Link from 'next/link'
-import { fetcher } from '@/lib/api'
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const [filterStatus, setFilterStatus] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -150,20 +147,6 @@ const OrdersPage = () => {
     }
   }
 
-  React.useEffect(() => {
-    setLoading(true)
-    fetcher('/api/orders/myorders')
-      .then(data => {
-        setOrders(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('failed to load orders', err)
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [])
-
   return (
     <div className='min-h-screen bg-gray-50 py-8'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -204,13 +187,7 @@ const OrdersPage = () => {
 
         {/* Orders List */}
         <div className='space-y-6'>
-          {loading && (
-            <div className='text-center py-24'>Loading orders...</div>
-          )}
-          {error && (
-            <div className='text-center py-24 text-red-500'>Error: {error}</div>
-          )}
-          {!loading && !error && filteredOrders.length === 0 ? (
+          {filteredOrders.length === 0 ? (
             <div className='bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center'>
               <Package className='w-16 h-16 text-gray-400 mx-auto mb-4' />
               <h2 className='text-xl font-semibold text-gray-900 mb-2'>No orders found</h2>

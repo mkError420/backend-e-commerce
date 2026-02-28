@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { productsData } from '@/constants/data'
-import { fetcher } from '@/lib/api'
 import { 
   ShoppingCart, 
   Plus, 
@@ -59,31 +58,8 @@ const CartPage = () => {
     }
   }
 
-  // Get recommended products from backend
-  const [recommendedProducts, setRecommendedProducts] = React.useState<any[]>([])
-  const [recLoading, setRecLoading] = React.useState(true)
-  const [recError, setRecError] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    setRecLoading(true)
-    fetcher('/api/products')
-      .then(data => {
-        // If API returns empty data, use sample data
-        if (data && data.length === 0) {
-          setRecommendedProducts(productsData.slice(0, 4))
-        } else {
-          setRecommendedProducts(data.slice(0, 4))
-        }
-        setRecLoading(false)
-      })
-      .catch(err => {
-        console.error('failed to load recommended products', err)
-        // On error, use sample data as fallback
-        setRecommendedProducts(productsData.slice(0, 4))
-        setRecError(null) // Clear error since we have fallback data
-        setRecLoading(false)
-      })
-  }, [])
+  // Get recommended products
+  const recommendedProducts = productsData.slice(0, 4)
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-shop_light_pink relative'>
