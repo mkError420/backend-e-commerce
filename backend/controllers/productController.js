@@ -56,22 +56,7 @@ const getProductById = asyncHandler(async (req, res) => {
 });
 
 const createProduct = asyncHandler(async (req, res) => {
-  console.log('=== BACKEND PRODUCT CREATION DEBUG ===');
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
-  
   const { name, description, shortDescription, price, regularPrice, category, subcategory, images, stock, featured } = req.body;
-  
-  console.log('Extracted fields:');
-  console.log('  name:', name);
-  console.log('  description:', description);
-  console.log('  shortDescription:', shortDescription);
-  console.log('  price:', price);
-  console.log('  regularPrice:', regularPrice);
-  console.log('  category:', category);
-  console.log('  subcategory:', subcategory);
-  console.log('  images:', images);
-  console.log('  stock:', stock);
-  console.log('  featured:', featured);
 
   try {
     // Validate required fields
@@ -125,7 +110,7 @@ const createProduct = asyncHandler(async (req, res) => {
     
     res.status(201).json(createdProduct);
   } catch (error) {
-    console.error('Product creation error:', error);
+    console.error('Product creation error:', error.message);
     res.status(500).json({ 
       message: error.message,
       details: error.errors || 'Unknown error occurred'
@@ -134,22 +119,7 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-  console.log('=== BACKEND PRODUCT UPDATE DEBUG ===');
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
-  
   const { name, description, shortDescription, price, regularPrice, category, subcategory, images, stock, featured } = req.body;
-  
-  console.log('Extracted fields:');
-  console.log('  name:', name);
-  console.log('  description:', description);
-  console.log('  shortDescription:', shortDescription);
-  console.log('  price:', price);
-  console.log('  regularPrice:', regularPrice);
-  console.log('  category:', category);
-  console.log('  subcategory:', subcategory);
-  console.log('  images:', images);
-  console.log('  stock:', stock);
-  console.log('  featured:', featured);
 
   const product = await Product.findById(req.params.id);
 
@@ -206,7 +176,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     const populatedProduct = await Product.findById(updatedProduct._id).populate("category", "name").populate("subcategory", "name");
     res.json(populatedProduct);
   } catch (error) {
-    console.error('Product update error:', error);
+    console.error('Product update error:', error.message);
     res.status(500).json({ 
       message: error.message,
       details: error.errors || 'Unknown error occurred'

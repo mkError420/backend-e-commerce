@@ -73,15 +73,6 @@ const AdminProducts = () => {
     e.preventDefault();
     
     try {
-      // Debug: Log the form data being sent
-      console.log('=== PRODUCT CREATION DEBUG ===');
-      console.log('Form data:', JSON.stringify(formData, null, 2));
-      console.log('Category:', formData.category);
-      console.log('Subcategory:', formData.subcategory);
-      console.log('Images:', formData.images);
-      console.log('Images length:', formData.images.length);
-      console.log('Images array content:', formData.images.filter(img => img.trim() !== ""));
-      
       const productData = {
         name: formData.name,
         description: formData.description,
@@ -94,8 +85,6 @@ const AdminProducts = () => {
         stock: parseInt(formData.stock),
         featured: formData.featured,
       };
-
-      console.log('Product data being sent to API:', JSON.stringify(productData, null, 2));
 
       if (editingProduct) {
         await productAPI.updateProduct(editingProduct._id, productData);
