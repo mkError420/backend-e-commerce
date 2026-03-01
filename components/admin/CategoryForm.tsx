@@ -12,6 +12,7 @@ interface Category {
     slug: string;
     description: string;
     image?: string;
+    _id?: string; // Add optional _id for existing subcategories
   }>;
 }
 
@@ -31,6 +32,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
       name: string;
       slug: string;
       description: string;
+      id?: string | number; // Add optional id field for React tracking
     }>;
   }>({
     name: "",
@@ -50,11 +52,30 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
 
   useEffect(() => {
     if (category) {
+      // Ensure subcategories is always an array
+      const subcategoriesArray = Array.isArray(category.subcategories) ? category.subcategories : [];
+      
+      const transformedSubcategories = subcategoriesArray.map((sub, index) => ({
+        name: sub.name || '',
+        slug: sub.slug || (sub.name ? sub.name.toLowerCase().replace(/\s+/g, '-') : ''),
+        description: sub.description || '',
+        image: sub.image || '',
+        id: sub._id || `existing-${index}` // Use existing _id or create a fallback ID
+      })).filter(sub => sub.name);
+      
       setFormData({
-        name: category.name,
-        description: category.description,
-        image: category.image,
-        subcategories: category.subcategories || []
+        name: category.name || '',
+        description: category.description || '',
+        image: category.image || '',
+        subcategories: transformedSubcategories
+      });
+    } else {
+      // Reset form when no category (for new category)
+      setFormData({
+        name: "",
+        description: "",
+        image: "",
+        subcategories: []
       });
     }
   }, [category]);
@@ -83,18 +104,21 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
     }));
   };
 
+  // Add unique IDs to subcategories for proper React tracking
   const addSubcategory = () => {
     if (newSubcategory.name.trim()) {
       const slug = newSubcategory.name.toLowerCase().replace(/\s+/g, '-');
-      console.log('Adding subcategory:', newSubcategory.name);
-      console.log('Current subcategories before adding:', formData.subcategories);
+      const uniqueId = Date.now() + Math.random(); // Unique ID for React key
       
       setFormData(prev => {
         const updated = {
           ...prev,
-          subcategories: [...prev.subcategories, { ...newSubcategory, slug }]
+          subcategories: [...prev.subcategories, { 
+            ...newSubcategory, 
+            slug,
+            id: uniqueId // Add unique ID for React tracking
+          }]
         };
-        console.log('Updated subcategories:', updated.subcategories);
         return updated;
       });
       
@@ -103,10 +127,13 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
   };
 
   const removeSubcategory = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      subcategories: prev.subcategories.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => {
+      const newSubcategories = prev.subcategories.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        subcategories: newSubcategories
+      };
+    });
   };
 
   const validateForm = () => {
@@ -131,21 +158,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
     e.preventDefault();
     
     if (validateForm()) {
-      // Debug: Log the form data being submitted
-      console.log('=== FORM SUBMISSION DEBUG ===');
-      console.log('Form data being submitted:', JSON.stringify(formData, null, 2));
-      console.log('Subcategories:', formData.subcategories);
-      console.log('Subcategories length:', formData.subcategories.length);
-      console.log('Subcategories type:', typeof formData.subcategories);
-      console.log('Is subcategories array:', Array.isArray(formData.subcategories));
-      
-      if (formData.subcategories.length > 0) {
-        console.log('Subcategories details:');
-        formData.subcategories.forEach((sub, index) => {
-          console.log(`  Subcategory ${index + 1}:`, sub);
-        });
-      }
-      
       onSubmit(formData);
     }
   };
@@ -215,7 +227,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
         {formData.subcategories.length > 0 && (
           <div className="space-y-2 mb-4">
             {formData.subcategories.map((subcategory, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={subcategory.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{subcategory.name}</p>
                   <p className="text-sm text-gray-600">{subcategory.description}</p>

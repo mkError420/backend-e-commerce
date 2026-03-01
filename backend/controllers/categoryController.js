@@ -124,7 +124,7 @@ const createCategory = asyncHandler(async (req, res) => {
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
-  const { name, description, image } = req.body;
+  const { name, description, image, subcategories } = req.body;
 
   const category = await Category.findById(req.params.id);
 
@@ -133,12 +133,45 @@ const updateCategory = asyncHandler(async (req, res) => {
     throw new Error("Category not found");
   }
 
+  // Update basic fields
   category.name = name || category.name;
   category.description = description || category.description;
   category.image = image || category.image;
 
+  // Handle subcategories update
+  if (subcategories && Array.isArray(subcategories)) {
+    // First, remove all existing subcategories for this category
+    await Category.deleteMany({ parent: category._id });
+    
+    // Clear the subcategories array
+    category.subcategories = [];
+    
+    if (subcategories.length > 0) {
+      // Create new subcategories
+      const createdSubcategories = await Promise.all(
+        subcategories.map(async (subcat) => {
+          const subcategoryDoc = await Category.create({
+            name: subcat.name,
+            description: subcat.description,
+            image: subcat.image || '',
+            parent: category._id,
+          });
+          return subcategoryDoc._id;
+        })
+      );
+      
+      // Update main category with new subcategory references
+      category.subcategories = createdSubcategories;
+    }
+  }
+
   const updatedCategory = await category.save();
-  res.json(updatedCategory);
+  
+  // Return the populated category with subcategories
+  const populatedCategory = await Category.findById(updatedCategory._id)
+    .populate('subcategories');
+    
+  res.json(populatedCategory);
 });
 
 const deleteCategory = asyncHandler(async (req, res) => {

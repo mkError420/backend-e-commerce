@@ -43,7 +43,7 @@ export const categoryAPI = {
       name: cat.name,
       count: cat.productCount || 0, // Use real product count from API
       subcategories: cat.subcategories?.map(sub => ({
-        id: sub._id,
+        id: sub._id, // Subcategories should have _id from MongoDB
         name: sub.name,
         count: sub.productCount || 0
       })) || []
@@ -51,7 +51,7 @@ export const categoryAPI = {
   },
 
   // Transform backend categories to categories page format
-  transformToCategoriesPageFormat: (apiCategories: Category[]): ShopCategory[] => {
+  transformToCategoriesPageFormat: (apiCategories: Category[]): any[] => {
     return apiCategories.map(cat => ({
       _id: cat._id,
       name: cat.name,

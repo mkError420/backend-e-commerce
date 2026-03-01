@@ -61,6 +61,11 @@ const ShopPage = () => {
         apiParams.category = filters.category
       }
       
+      // Add subcategory if present
+      if (filters.subcategory) {
+        apiParams.subcategory = filters.subcategory
+      }
+      
       // Add featured filter if needed (you can customize this)
       // apiParams.featured = false
 
@@ -80,12 +85,8 @@ const ShopPage = () => {
   const fetchCategories = async () => {
     try {
       const apiCategories = await categoryAPI.getCategories()
-      // Transform API categories to the format expected by FilterSidebar
-      const transformedCategories = apiCategories.map(cat => ({
-        id: cat._id,
-        name: cat.name,
-        count: cat.productCount || 0
-      }))
+      // Use the proper transformation function that includes subcategories
+      const transformedCategories = categoryAPI.transformToShopFormat(apiCategories)
       setCategories(transformedCategories)
     } catch (err) {
       console.error('Failed to fetch categories:', err)

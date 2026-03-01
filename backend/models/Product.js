@@ -34,6 +34,11 @@ const productSchema = new mongoose.Schema({
     ref: "Category",
     required: [true, "Please select a category"],
   },
+  subcategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    required: false, // Subcategory is optional
+  },
   images: [{
     type: String,
     required: true,

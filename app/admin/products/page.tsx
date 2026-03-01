@@ -71,14 +71,31 @@ const AdminProducts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
+      // Debug: Log the form data being sent
+      console.log('=== PRODUCT CREATION DEBUG ===');
+      console.log('Form data:', JSON.stringify(formData, null, 2));
+      console.log('Category:', formData.category);
+      console.log('Subcategory:', formData.subcategory);
+      console.log('Images:', formData.images);
+      console.log('Images length:', formData.images.length);
+      console.log('Images array content:', formData.images.filter(img => img.trim() !== ""));
+      
       const productData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        shortDescription: formData.shortDescription,
         price: parseFloat(formData.price),
-        regularPrice: formData.regularPrice ? parseFloat(formData.regularPrice) : undefined,
-        stock: parseInt(formData.stock),
+        regularPrice: parseFloat(formData.regularPrice),
+        category: formData.category,
+        subcategory: formData.subcategory || null,
         images: formData.images.filter(img => img.trim() !== ""),
+        stock: parseInt(formData.stock),
+        featured: formData.featured,
       };
+
+      console.log('Product data being sent to API:', JSON.stringify(productData, null, 2));
 
       if (editingProduct) {
         await productAPI.updateProduct(editingProduct._id, productData);
@@ -387,7 +404,7 @@ const AdminProducts = () => {
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   >
                     <option value="">Select a category</option>
-                    {categories.filter((cat: any) => !cat.parent).map((category: any) => (
+                    {categories.map((category: any) => (
                       <option key={category._id} value={category._id}>
                         {category.name}
                       </option>

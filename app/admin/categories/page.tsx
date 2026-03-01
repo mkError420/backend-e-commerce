@@ -11,10 +11,14 @@ interface Category {
   image: string;
   parent?: string;
   subcategories?: Array<{
+    _id: string;
     name: string;
     slug: string;
     description: string;
+    image?: string;
+    productCount?: number;
   }>;
+  productCount?: number;
 }
 
 const AdminCategoriesPage = () => {
@@ -80,23 +84,9 @@ const AdminCategoriesPage = () => {
     fetchCategories();
   };
 
-  const handleCreateCategory = async (categoryData: Omit<Category, "_id">) => {
+  const handleCreateCategory = async (categoryData: any) => {
     try {
       if (typeof window === "undefined") return;
-      
-      // Debug: Log the category data being sent
-      console.log('=== API REQUEST DEBUG ===');
-      console.log('Sending category data to API:', JSON.stringify(categoryData, null, 2));
-      console.log('Subcategories in data:', categoryData.subcategories);
-      console.log('Subcategories type:', typeof categoryData.subcategories);
-      console.log('Is subcategories array:', Array.isArray(categoryData.subcategories));
-      
-      if (categoryData.subcategories && Array.isArray(categoryData.subcategories)) {
-        console.log('Subcategories details:');
-        categoryData.subcategories.forEach((sub, index) => {
-          console.log(`  Subcategory ${index + 1}:`, sub);
-        });
-      }
       
       const token = localStorage.getItem("token");
       if (!token) {
@@ -113,15 +103,15 @@ const AdminCategoriesPage = () => {
         body: JSON.stringify(categoryData),
       });
 
-      console.log('API Response status:', response.status);
-      console.log('API Response ok:', response.ok);
-
       if (response.ok) {
         const newCategory = await response.json();
-        console.log('API Response data:', JSON.stringify(newCategory, null, 2));
-        setCategories([...categories, newCategory]);
+        // Refresh the categories list to get the proper hierarchical structure
+        await fetchCategories();
         setIsFormOpen(false);
         setError("");
+        setSuccessMessage("Category created successfully!");
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to create category");
@@ -132,7 +122,7 @@ const AdminCategoriesPage = () => {
     }
   };
 
-  const handleUpdateCategory = async (id: string, categoryData: Partial<Category>) => {
+  const handleUpdateCategory = async (id: string, categoryData: any) => {
     try {
       if (typeof window === "undefined") return;
       
@@ -291,7 +281,7 @@ const AdminCategoriesPage = () => {
             category={editingCategory}
             categories={categories}
             onSubmit={editingCategory 
-              ? (data: Omit<Category, "_id">) => handleUpdateCategory(editingCategory._id, data)
+              ? (data: any) => handleUpdateCategory(editingCategory._id, data)
               : handleCreateCategory
             }
             onCancel={handleCancel}
@@ -304,7 +294,6 @@ const AdminCategoriesPage = () => {
           categories={categories}
           onEdit={handleEdit}
           onDelete={handleDeleteCategory}
-          onUpdate={handleUpdateCategory}
         />
       </div>
     </div>
