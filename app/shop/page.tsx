@@ -241,38 +241,38 @@ const defaultCategories = [
     ]
   },
   { 
-    id: 'books', 
-    name: 'Books', 
+    id: 'educational-books', 
+    name: 'Educational Books', 
     count: 67,
     subcategories: [
-      { id: 'fiction', name: 'Fiction', count: 25 },
-      { id: 'non-fiction', name: 'Non-Fiction', count: 22 },
-      { id: 'educational', name: 'Educational', count: 20 }
+      { id: 'fiction-edu', name: 'Fiction', count: 25 },
+      { id: 'non-fiction-edu', name: 'Non-Fiction', count: 22 },
+      { id: 'educational-content', name: 'Educational', count: 20 }
     ]
   },
   { 
-    id: 'health', 
-    name: 'Health', 
+    id: 'personal-health', 
+    name: 'Personal Health', 
     count: 63,
     subcategories: [
       { id: 'supplements', name: 'Supplements', count: 28 },
-      { id: 'fitness', name: 'Fitness Equipment', count: 20 },
+      { id: 'fitness-equipment', name: 'Fitness Equipment', count: 20 },
       { id: 'personal-care', name: 'Personal Care', count: 15 }
     ]
   },
   { 
-    id: 'sports', 
-    name: 'Sports', 
+    id: 'fitness-sports', 
+    name: 'Fitness Sports', 
     count: 45,
     subcategories: [
-      { id: 'outdoor', name: 'Outdoor Sports', count: 20 },
-      { id: 'indoor', name: 'Indoor Sports', count: 15 },
-      { id: 'fitness', name: 'Fitness', count: 10 }
+      { id: 'outdoor-fitness', name: 'Outdoor Sports', count: 20 },
+      { id: 'indoor-fitness', name: 'Indoor Sports', count: 15 },
+      { id: 'fitness-gear', name: 'Fitness', count: 10 }
     ]
   },
   { 
-    id: 'toys', 
-    name: 'Toys & Games', 
+    id: 'kids-toys', 
+    name: 'Kids Toys & Games', 
     count: 78,
     subcategories: [
       { id: 'educational-toys', name: 'Educational Toys', count: 30 },
@@ -281,22 +281,22 @@ const defaultCategories = [
     ]
   },
   { 
-    id: 'gaming', 
-    name: 'Gaming', 
+    id: 'video-gaming', 
+    name: 'Video Gaming', 
     count: 52,
     subcategories: [
-      { id: 'consoles', name: 'Gaming Consoles', count: 18 },
-      { id: 'video-games', name: 'Video Games', count: 22 },
-      { id: 'accessories', name: 'Gaming Accessories', count: 12 }
+      { id: 'gaming-consoles', name: 'Gaming Consoles', count: 18 },
+      { id: 'video-games-content', name: 'Video Games', count: 22 },
+      { id: 'gaming-accessories', name: 'Gaming Accessories', count: 12 }
     ]
   },
   { 
-    id: 'photography', 
-    name: 'Photography', 
+    id: 'digital-photography', 
+    name: 'Digital Photography', 
     count: 29,
     subcategories: [
-      { id: 'cameras', name: 'Cameras', count: 15 },
-      { id: 'lenses', name: 'Lenses', count: 8 },
+      { id: 'digital-cameras', name: 'Cameras', count: 15 },
+      { id: 'camera-lenses', name: 'Lenses', count: 8 },
       { id: 'accessories', name: 'Photography Accessories', count: 6 }
     ]
   }
