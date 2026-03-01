@@ -4,6 +4,10 @@ export interface Category {
   name: string;
   description: string;
   image: string;
+  slug?: string;
+  productCount?: number;
+  createdAt?: string;
+  subcategories?: Category[];
 }
 
 export interface ShopCategory {
@@ -37,8 +41,24 @@ export const categoryAPI = {
     return apiCategories.map(cat => ({
       id: cat._id,
       name: cat.name,
-      count: Math.floor(Math.random() * 300) + 50, // Demo count
-      subcategories: [] // Can be extended with real subcategories
+      count: cat.productCount || 0, // Use real product count from API
+      subcategories: cat.subcategories?.map(sub => ({
+        id: sub._id,
+        name: sub.name,
+        count: sub.productCount || 0
+      })) || []
+    }));
+  },
+
+  // Transform backend categories to categories page format
+  transformToCategoriesPageFormat: (apiCategories: Category[]): ShopCategory[] => {
+    return apiCategories.map(cat => ({
+      _id: cat._id,
+      name: cat.name,
+      description: cat.description,
+      image: cat.image,
+      slug: cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-'),
+      productCount: cat.productCount || 0
     }));
   }
 };

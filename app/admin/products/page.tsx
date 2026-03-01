@@ -13,6 +13,7 @@ interface ProductFormData {
   price: string;
   regularPrice: string;
   category: string;
+  subcategory: string;
   stock: string;
   featured: boolean;
   images: string[];
@@ -35,6 +36,7 @@ const AdminProducts = () => {
     price: "",
     regularPrice: "",
     category: "",
+    subcategory: "",
     stock: "",
     featured: false,
     images: [""],
@@ -93,6 +95,7 @@ const AdminProducts = () => {
         price: "",
         regularPrice: "",
         category: "",
+        subcategory: "",
         stock: "",
         featured: false,
         images: [""],
@@ -112,6 +115,7 @@ const AdminProducts = () => {
       price: product.price.toString(),
       regularPrice: product.regularPrice?.toString() || "",
       category: typeof product.category === 'string' ? product.category : product.category?._id || '',
+      subcategory: product.subcategory || '',
       stock: product.stock.toString(),
       featured: product.featured,
       images: product.images.length > 0 ? product.images : [""],
@@ -373,17 +377,43 @@ const AdminProducts = () => {
                   <select
                     required
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ 
+                        ...formData, 
+                        category: e.target.value,
+                        subcategory: "" // Reset subcategory when category changes
+                      });
+                    }}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   >
                     <option value="">Select a category</option>
-                    {categories.map((category: any) => (
+                    {categories.filter((cat: any) => !cat.parent).map((category: any) => (
                       <option key={category._id} value={category._id}>
                         {category.name}
                       </option>
                     ))}
                   </select>
                 </div>
+                
+                {formData.category && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Subcategory (Optional)</label>
+                    <select
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    >
+                      <option value="">Select a subcategory</option>
+                      {categories
+                        .find((cat: any) => cat._id === formData.category)
+                        ?.subcategories?.map((subcat: any) => (
+                          <option key={subcat._id} value={subcat._id}>
+                            {subcat.name}
+                          </option>
+                        )) || []}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Stock</label>
                   <input

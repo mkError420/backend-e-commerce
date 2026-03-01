@@ -36,7 +36,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
   
   // Handle both number and string IDs, prefer _id if available
   const productId = product._id || product.id
-  const imageUrl = product.images?.[0] || product.image || '/placeholder.jpg'
+  const imageUrl = product.images?.[0] || product.image || '/file.svg'
   
   console.log('ProductCard rendering for product:', product.name, 'ID:', productId, 'Type:', typeof productId) // Debug log
   
@@ -165,7 +165,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                   alt={product.name}
                   className='w-full h-full object-cover'
                   onError={(e) => {
-                    e.currentTarget.src = '/placeholder.jpg';
+                    e.currentTarget.src = '/file.svg';
                   }}
                 />
               </div>
@@ -310,7 +310,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
             alt={product.name}
             className='w-full h-full object-cover'
             onError={(e) => {
-              e.currentTarget.src = '/placeholder.jpg';
+              e.currentTarget.src = '/file.svg';
             }}
           />
         </div>
@@ -400,7 +400,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                       alt={product.name}
                       className='w-full h-full object-cover'
                       onError={(e) => {
-                        e.currentTarget.src = '/placeholder.jpg';
+                        e.currentTarget.src = '/file.svg';
                       }}
                     />
                   </div>

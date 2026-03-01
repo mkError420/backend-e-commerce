@@ -8,6 +8,7 @@ export interface Product {
   price: number;
   regularPrice?: number;
   category: string | { _id: string; name: string };
+  subcategory?: string;
   images: string[];
   stock: number;
   featured: boolean;

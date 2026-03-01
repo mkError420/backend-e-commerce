@@ -46,81 +46,54 @@ const AdminDashboard = () => {
       
       const productsData = await productsResponse.json();
       
-      // Mock data for other dashboard items - in production, fetch from actual APIs
-      const mockData = {
-        stats: {
-          totalProducts: 156,
-          totalOrders: 1247,
-          totalUsers: 892,
-          totalRevenue: 45789.50,
-          pendingOrders: 23,
-          completedOrders: 1189,
-          lowStockProducts: 8,
+      // Fetch real data from APIs
+      const statsResponse = await fetch('http://localhost:5000/api/dashboard/stats', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        recentOrders: [
-          {
-            _id: "order001",
-            user: { name: "John Doe" },
-            totalPrice: 299.99,
-            status: "pending",
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            items: 3
-          },
-          {
-            _id: "order002",
-            user: { name: "Jane Smith" },
-            totalPrice: 599.99,
-            status: "processing",
-            createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            items: 5
-          },
-          {
-            _id: "order003",
-            user: { name: "Bob Johnson" },
-            totalPrice: 149.99,
-            status: "shipped",
-            createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-            items: 2
-          },
-          {
-            _id: "order004",
-            user: { name: "Alice Brown" },
-            totalPrice: 899.99,
-            status: "delivered",
-            createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            items: 4
-          },
-          {
-            _id: "order005",
-            user: { name: "Charlie Wilson" },
-            totalPrice: 399.99,
-            status: "processing",
-            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-            items: 3
-          },
-        ],
-        topProducts: [
-          { _id: "prod001", name: "Laptop Pro", sales: 89, revenue: 88911 },
-          { _id: "prod002", name: "Smartphone X", sales: 156, revenue: 109195 },
-          { _id: "prod003", name: "Wireless Headphones", sales: 234, revenue: 46785 },
-          { _id: "prod004", name: "T-Shirt Premium", sales: 412, revenue: 12348 },
-          { _id: "prod005", name: "JavaScript Guide", sales: 78, revenue: 3119 },
-        ],
-        salesData: [
-          { date: "Mon", sales: 2456 },
-          { date: "Tue", sales: 3124 },
-          { date: "Wed", sales: 2890 },
-          { date: "Thu", sales: 3678 },
-          { date: "Fri", sales: 4234 },
-          { date: "Sat", sales: 3890 },
-          { date: "Sun", sales: 3456 },
-        ]
+      });
+      
+      const ordersResponse = await fetch('http://localhost:5000/api/orders?limit=5', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      const topProductsResponse = await fetch('http://localhost:5000/api/products/top', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      const salesResponse = await fetch('http://localhost:5000/api/dashboard/sales', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      // Use real data or empty arrays if APIs don't exist yet
+      const statsData = statsResponse.ok ? await statsResponse.json() : {
+        totalProducts: 0,
+        totalOrders: 0,
+        totalUsers: 0,
+        totalRevenue: 0,
+        pendingOrders: 0,
+        completedOrders: 0,
+        lowStockProducts: 0,
       };
+      
+      const ordersData = ordersResponse.ok ? await ordersResponse.json() : [];
+      const topProductsData = topProductsResponse.ok ? await topProductsResponse.json() : [];
+      const salesData = salesResponse.ok ? await salesResponse.json() : [];
 
-      setStats(mockData.stats);
-      setRecentOrders(mockData.recentOrders);
-      setTopProducts(mockData.topProducts);
-      setSalesData(mockData.salesData);
+      setStats(statsData);
+      setRecentOrders(ordersData);
+      setTopProducts(topProductsData);
+      setSalesData(salesData);
       
       // Set real products with pagination
       setDashboardProducts(productsData.products || []);
@@ -378,7 +351,7 @@ const AdminDashboard = () => {
                           alt={product.name}
                           className="w-full h-full object-cover rounded-lg"
                           onError={(e) => {
-                            e.currentTarget.src = '/placeholder.jpg';
+                            e.currentTarget.src = '/file.svg';
                           }}
                         />
                       ) : (

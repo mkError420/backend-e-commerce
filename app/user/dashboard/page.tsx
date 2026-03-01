@@ -32,93 +32,38 @@ const UserDashboard = () => {
         return;
       }
 
-      // Mock data for demonstration - in production, fetch from actual APIs
-      const mockData = {
-        stats: {
-          totalOrders: 12,
-          totalSpent: 1256.78,
-          pendingOrders: 2,
-          completedOrders: 10,
-          savedItems: 8,
-          wishlistItems: 15,
+      // Fetch real data from APIs
+      const ordersResponse = await fetch('http://localhost:5000/api/orders/user', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        recentOrders: [
-          {
-            _id: "order001",
-            totalPrice: 299.99,
-            status: "delivered",
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            items: [
-              { name: "Laptop Pro", quantity: 1, image: "/images/laptop.jpg" },
-              { name: "Wireless Mouse", quantity: 1, image: "/images/mouse.jpg" }
-            ]
-          },
-          {
-            _id: "order002",
-            totalPrice: 149.99,
-            status: "processing",
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            items: [
-              { name: "Smartphone X", quantity: 1, image: "/images/phone.jpg" }
-            ]
-          },
-          {
-            _id: "order003",
-            totalPrice: 89.99,
-            status: "shipped",
-            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            items: [
-              { name: "Headphones", quantity: 1, image: "/images/headphones.jpg" }
-            ]
-          },
-        ],
-        recommendedProducts: [
-          {
-            _id: "prod001",
-            name: "Premium Laptop Stand",
-            price: 49.99,
-            image: "/images/stand.jpg",
-            rating: 4.5,
-            reviews: 234,
-          },
-          {
-            _id: "prod002",
-            name: "USB-C Hub",
-            price: 29.99,
-            image: "/images/hub.jpg",
-            rating: 4.3,
-            reviews: 156,
-          },
-          {
-            _id: "prod003",
-            name: "Mechanical Keyboard",
-            price: 89.99,
-            image: "/images/keyboard.jpg",
-            rating: 4.7,
-            reviews: 89,
-          },
-          {
-            _id: "prod004",
-            name: "Webcam HD",
-            price: 69.99,
-            image: "/images/webcam.jpg",
-            rating: 4.2,
-            reviews: 67,
-          },
-        ],
-        orderHistory: [
-          { month: "Jan", orders: 3, spent: 245.67 },
-          { month: "Feb", orders: 2, spent: 189.90 },
-          { month: "Mar", orders: 4, spent: 412.34 },
-          { month: "Apr", orders: 1, spent: 98.99 },
-          { month: "May", orders: 2, spent: 309.88 },
-        ]
+      });
+      
+      const productsResponse = await fetch('http://localhost:5000/api/products?featured=true&limit=4', {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      // Use real data or empty arrays if APIs don't exist yet
+      const ordersData = ordersResponse.ok ? await ordersResponse.json() : [];
+      const productsData = productsResponse.ok ? await productsResponse.json() : [];
+      
+      // Calculate stats from real data
+      const stats = {
+        totalOrders: ordersData.length,
+        totalSpent: ordersData.reduce((sum: number, order: any) => sum + (order.totalPrice || 0), 0),
+        pendingOrders: ordersData.filter((order: any) => order.status === 'pending').length,
+        completedOrders: ordersData.filter((order: any) => order.status === 'delivered').length,
+        savedItems: 0, // TODO: Implement saved items API
+        wishlistItems: 0, // TODO: Implement wishlist API
       };
 
-      setStats(mockData.stats);
-      setRecentOrders(mockData.recentOrders);
-      setRecommendedProducts(mockData.recommendedProducts);
-      setOrderHistory(mockData.orderHistory);
+      setStats(stats);
+      setRecentOrders(ordersData.slice(0, 3));
+      setRecommendedProducts(productsData.products || []);
+      setOrderHistory(ordersData);
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {

@@ -16,8 +16,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mkshop
 console.log('Using port:', port);
 console.log('Using MONGODB_URI:', MONGODB_URI ? '***configured***' : 'undefined');
 
-// Temporarily comment out database connection to test server startup
-// connectDB();
+connectDB();
 
 const app = express();
 
@@ -46,9 +45,9 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/products", require("./routes/products-mock"));
-app.use("/api/categories", require("./routes/categories-mock"));
-app.use("/api/orders", require("./routes/orders-mock"));
+app.use("/api/products", require("./routes/products"));
+app.use("/api/categories", require("./routes/categories"));
+app.use("/api/orders", require("./routes/orders"));
 app.use("/api/users", require("./routes/users"));
 
 app.use(errorHandler);

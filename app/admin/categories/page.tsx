@@ -9,12 +9,19 @@ interface Category {
   name: string;
   description: string;
   image: string;
+  parent?: string;
+  subcategories?: Array<{
+    name: string;
+    slug: string;
+    description: string;
+  }>;
 }
 
 const AdminCategoriesPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -77,6 +84,20 @@ const AdminCategoriesPage = () => {
     try {
       if (typeof window === "undefined") return;
       
+      // Debug: Log the category data being sent
+      console.log('=== API REQUEST DEBUG ===');
+      console.log('Sending category data to API:', JSON.stringify(categoryData, null, 2));
+      console.log('Subcategories in data:', categoryData.subcategories);
+      console.log('Subcategories type:', typeof categoryData.subcategories);
+      console.log('Is subcategories array:', Array.isArray(categoryData.subcategories));
+      
+      if (categoryData.subcategories && Array.isArray(categoryData.subcategories)) {
+        console.log('Subcategories details:');
+        categoryData.subcategories.forEach((sub, index) => {
+          console.log(`  Subcategory ${index + 1}:`, sub);
+        });
+      }
+      
       const token = localStorage.getItem("token");
       if (!token) {
         setError("Authentication required");
@@ -92,8 +113,12 @@ const AdminCategoriesPage = () => {
         body: JSON.stringify(categoryData),
       });
 
+      console.log('API Response status:', response.status);
+      console.log('API Response ok:', response.ok);
+
       if (response.ok) {
         const newCategory = await response.json();
+        console.log('API Response data:', JSON.stringify(newCategory, null, 2));
         setCategories([...categories, newCategory]);
         setIsFormOpen(false);
         setError("");
@@ -145,12 +170,17 @@ const AdminCategoriesPage = () => {
   };
 
   const handleDeleteCategory = async (id: string) => {
+    console.log('Delete button clicked for category ID:', id);
+    
     if (!confirm("Are you sure you want to delete this category?")) {
+      console.log('Delete cancelled by user');
       return;
     }
 
     try {
       if (typeof window === "undefined") return;
+      
+      console.log('Proceeding with delete for ID:', id);
       
       const token = localStorage.getItem("token");
       if (!token) {
@@ -158,6 +188,8 @@ const AdminCategoriesPage = () => {
         return;
       }
 
+      console.log('Making DELETE request to:', `http://localhost:5000/api/categories/${id}`);
+      
       const response = await fetch(`http://localhost:5000/api/categories/${id}`, {
         method: "DELETE",
         headers: {
@@ -165,12 +197,20 @@ const AdminCategoriesPage = () => {
         },
       });
 
+      console.log('Delete response status:', response.status);
+      console.log('Delete response ok:', response.ok);
+
       if (response.ok) {
+        console.log('Delete successful, updating frontend state');
         setCategories(categories.filter(cat => cat._id !== id));
         setError("");
+        setSuccessMessage("Category deleted successfully!");
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Failed to delete category");
+        console.log('Delete error response:', errorData);
+        setError(errorData.error || errorData.message || "Failed to delete category");
       }
     } catch (error: any) {
       console.error("Error deleting category:", error);
@@ -181,11 +221,15 @@ const AdminCategoriesPage = () => {
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
     setIsFormOpen(true);
+    setError("");
+    setSuccessMessage("");
   };
 
   const handleAddNew = () => {
     setEditingCategory(null);
     setIsFormOpen(true);
+    setError("");
+    setSuccessMessage("");
   };
 
   const handleCancel = () => {
@@ -218,10 +262,22 @@ const AdminCategoriesPage = () => {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex justify-between items-center">
           <span>{error}</span>
           <button
-            onClick={retryFetch}
+            onClick={() => setError("")}
             className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
           >
-            Retry
+            ×
+          </button>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded flex justify-between items-center">
+          <span>{successMessage}</span>
+          <button
+            onClick={() => setSuccessMessage("")}
+            className="ml-4 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
+          >
+            ×
           </button>
         </div>
       )}
@@ -233,6 +289,7 @@ const AdminCategoriesPage = () => {
           </h2>
           <CategoryForm
             category={editingCategory}
+            categories={categories}
             onSubmit={editingCategory 
               ? (data: Omit<Category, "_id">) => handleUpdateCategory(editingCategory._id, data)
               : handleCreateCategory
@@ -247,6 +304,7 @@ const AdminCategoriesPage = () => {
           categories={categories}
           onEdit={handleEdit}
           onDelete={handleDeleteCategory}
+          onUpdate={handleUpdateCategory}
         />
       </div>
     </div>

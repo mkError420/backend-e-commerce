@@ -35,7 +35,7 @@ const getProductById = asyncHandler(async (req, res) => {
 });
 
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, shortDescription, price, regularPrice, category, images, stock, featured } = req.body;
+  const { name, description, shortDescription, price, regularPrice, category, subcategory, images, stock, featured } = req.body;
 
   const product = await Product.create({
     name,
@@ -44,18 +44,19 @@ const createProduct = asyncHandler(async (req, res) => {
     price,
     regularPrice,
     category,
+    subcategory: subcategory || null,
     images,
     stock,
     featured,
   });
 
-  const createdProduct = await Product.findById(product._id).populate("category", "name");
+  const createdProduct = await Product.findById(product._id).populate("category", "name").populate("subcategory", "name");
   
   res.status(201).json(createdProduct);
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, description, shortDescription, price, regularPrice, category, images, stock, featured } = req.body;
+  const { name, description, shortDescription, price, regularPrice, category, subcategory, images, stock, featured } = req.body;
 
   const product = await Product.findById(req.params.id);
 
@@ -70,12 +71,14 @@ const updateProduct = asyncHandler(async (req, res) => {
   product.price = price || product.price;
   product.regularPrice = regularPrice !== undefined ? regularPrice : product.regularPrice;
   product.category = category || product.category;
+  product.subcategory = subcategory !== undefined ? subcategory : product.subcategory;
   product.images = images || product.images;
   product.stock = stock || product.stock;
   product.featured = featured !== undefined ? featured : product.featured;
 
   const updatedProduct = await product.save();
-  res.json(updatedProduct);
+  const populatedProduct = await Product.findById(updatedProduct._id).populate("category", "name").populate("subcategory", "name");
+  res.json(populatedProduct);
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {

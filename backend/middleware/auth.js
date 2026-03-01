@@ -1,22 +1,5 @@
 const jwt = require("jsonwebtoken");
-
-// Mock users for testing without MongoDB
-const mockUsers = [
-  {
-    _id: "admin123",
-    name: "Admin User",
-    email: "admin@example.com",
-    password: "123456",
-    role: "admin"
-  },
-  {
-    _id: "user123",
-    name: "John Doe",
-    email: "user@example.com",
-    password: "123456",
-    role: "user"
-  }
-];
+const User = require("../models/User");
 
 const protect = async (req, res, next) => {
   let token;
@@ -26,8 +9,8 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, "your_jwt_secret_key_here");
       
-      // Mock user lookup - in production, use database
-      const user = mockUsers.find(u => u._id === decoded.id);
+      // Use real database user lookup
+      const user = await User.findById(decoded.id).select("-password");
       
       if (!user) {
         console.log("User not found for ID:", decoded.id);
