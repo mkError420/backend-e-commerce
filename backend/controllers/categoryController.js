@@ -79,7 +79,7 @@ const getCategoryById = asyncHandler(async (req, res) => {
 });
 
 const createCategory = asyncHandler(async (req, res) => {
-  const { name, description, image, parent, subcategories } = req.body;
+  const { name, description, image, subcategories } = req.body;
 
   const categoryExists = await Category.findOne({ name });
 
@@ -88,12 +88,12 @@ const createCategory = asyncHandler(async (req, res) => {
     throw new Error("Category already exists");
   }
 
-  // Create the main category
+  // Create the main category (always as root category)
   const category = await Category.create({
     name,
     description,
     image,
-    parent: parent || null,
+    parent: null, // Always create as root category
   });
 
   // Create subcategories if provided
@@ -104,22 +104,15 @@ const createCategory = asyncHandler(async (req, res) => {
           name: subcat.name,
           description: subcat.description,
           image: subcat.image || '',
-          parent: category._id,
+          parent: category._id, // Set parent to the main category
         });
         return subcategoryDoc._id;
       })
     );
     
-    // Update parent category with subcategory references
+    // Update main category with subcategory references
     await Category.findByIdAndUpdate(category._id, {
       subcategories: createdSubcategories
-    });
-  }
-
-  // If this is a subcategory, update parent's subcategories list
-  if (parent) {
-    await Category.findByIdAndUpdate(parent, {
-      $push: { subcategories: category._id }
     });
   }
 

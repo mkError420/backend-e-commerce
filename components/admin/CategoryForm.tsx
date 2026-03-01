@@ -7,14 +7,11 @@ interface Category {
   name: string;
   description: string;
   image: string;
-  parent?: string;
   subcategories?: Array<{
-    _id: string;
     name: string;
     slug: string;
     description: string;
     image?: string;
-    productCount?: number;
   }>;
 }
 
@@ -30,7 +27,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
     name: string;
     description: string;
     image: string;
-    parent: string;
     subcategories: Array<{
       name: string;
       slug: string;
@@ -40,7 +36,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
     name: "",
     description: "",
     image: "",
-    parent: "",
     subcategories: []
   });
   const [errors, setErrors] = useState({
@@ -59,7 +54,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
         name: category.name,
         description: category.description,
         image: category.image,
-        parent: category.parent || "",
         subcategories: category.subcategories || []
       });
     }
@@ -176,29 +170,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories = [], 
         {errors.name && (
           <p className="mt-1 text-sm text-red-600">{errors.name}</p>
         )}
-      </div>
-
-      <div>
-        <label htmlFor="parent" className="block text-sm font-medium text-gray-700 mb-1">
-          Parent Category
-        </label>
-        <select
-          id="parent"
-          name="parent"
-          value={formData.parent}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">None (Root Category)</option>
-          {categories
-            .filter(cat => cat._id !== category?._id) // Don't show current category as parent option
-            .map((category) => (
-              <option key={category._id} value={category._id}>
-                {category.name}
-              </option>
-            ))}
-        </select>
-        <p className="mt-1 text-sm text-gray-500">Select a parent category to create a subcategory</p>
       </div>
 
       <div>

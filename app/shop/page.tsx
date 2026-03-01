@@ -23,6 +23,12 @@ const ShopPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortBy, setSortBy] = useState('name')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  const [totalItems, setTotalItems] = useState(0)
+  const [itemsPerPage] = useState(12)
   const [filters, setFilters] = useState({
     category: '',
     subcategory: '',
@@ -39,19 +45,29 @@ const ShopPage = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '12',
-        ...(filters.category && { category: filters.category }),
-        ...(filters.priceRange[0] > 0 && { minPrice: filters.priceRange[0].toString() }),
-        ...(filters.priceRange[1] < 1000 && { maxPrice: filters.priceRange[1].toString() }),
-        ...(filters.sortBy && { sort: filters.sortBy }),
-        ...(filters.search && { search: filters.search })
-      })
+      
+      // Build the params object for productAPI.getProducts
+      const apiParams: any = {
+        page: currentPage,
+      }
+      
+      // Add search term if present
+      if (filters.search) {
+        apiParams.keyword = filters.search
+      }
+      
+      // Add category if present
+      if (filters.category) {
+        apiParams.category = filters.category
+      }
+      
+      // Add featured filter if needed (you can customize this)
+      // apiParams.featured = false
 
-      const response = await productAPI.getProducts(params.toString())
+      const response = await productAPI.getProducts(apiParams)
       setProducts(response.products || [])
       setTotalPages(response.pages || 1)
+      setTotalItems(response.products?.length || 0)
       setError(null)
     } catch (err) {
       console.error('Failed to fetch products:', err)
@@ -117,8 +133,15 @@ const ShopPage = () => {
       <div className="py-8">
         {/* Header */}
         <ShopHeader 
-          productsCount={products.length}
-          onSearch={(search) => handleFilterChange({ ...filters, search })}
+          totalProducts={products.length}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
         />
 
         <div className="flex flex-col lg:flex-row gap-8 mt-8">
@@ -142,7 +165,7 @@ const ShopPage = () => {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {products.map((product) => (
-                    <ProductCard key={product._id} product={product} />
+                    <ProductCard key={product._id} product={product} viewMode={viewMode} />
                   ))}
                 </div>
 
@@ -153,6 +176,8 @@ const ShopPage = () => {
                       currentPage={currentPage}
                       totalPages={totalPages}
                       onPageChange={handlePageChange}
+                      totalItems={totalItems}
+                      itemsPerPage={itemsPerPage}
                     />
                   </div>
                 )}
